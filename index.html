@@ -3,598 +3,685 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Work Flow Manager — версия 4.0</title>
-
+<title>Work Flow Manager — Версия 4.0</title>
 <style>
   :root{
-    --bg:#03122a;
+    --bg:#071020;
     --glass-1: rgba(255,255,255,0.04);
     --glass-2: rgba(255,255,255,0.02);
-    --accent1:#4fc3f7;
-    --accent2:#7b61ff;
-    --text:#e8f7ff;
-    --muted:#9fb7c9;
-    --glass-border: rgba(255,255,255,0.10);
-    --glass-blur: 18px;
-    --card-radius:28px; /* более закруглённые карточки */
-    --gap:20px;
-  }
-
-  *,*::before,*::after{ box-sizing:border-box; }
-
-  html,body{
-    height:100%; margin:0; padding:0;
+    --accent-1: #0ea5ff;
+    --accent-2: #6b21a8;
+    --card-radius: 20px;
+    --glass-border: rgba(255,255,255,0.06);
+    --text: #e6f0ff;
+    --muted: #9fb3d6;
+    --shadow: 0 8px 30px rgba(2,6,23,0.7);
     font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
-    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-    background:
-      radial-gradient(900px 420px at 8% 12%, rgba(123,97,255,0.08), transparent 10%),
-      radial-gradient(800px 380px at 92% 88%, rgba(79,195,247,0.04), transparent 10%),
-      linear-gradient(180deg, #02102a 0%, var(--bg) 100%);
-    color:var(--text);
   }
 
-  /* Layout */
-  .container{
-    max-width:1220px;
-    margin:28px auto;
-    padding:24px;
-    display:grid;
-    grid-template-columns: 1fr 460px;
-    gap:var(--gap);
+  html,body{height:100%;margin:0;background:
+    radial-gradient(1200px 600px at 10% 10%, rgba(14,165,255,0.06), transparent 6%),
+    linear-gradient(180deg,#021028 0%, #04102a 50%, #020617 100%);
+    color:var(--text);-webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
   }
-  @media (max-width:1000px){ .container{ grid-template-columns: 1fr; padding:16px; } }
 
-  /* Liquid glass card */
+  /* Ensure footer space so cards don't overlap footer */
+  body{padding-bottom:84px;box-sizing:border-box;}
+
+  .app{
+    max-width:1200px;margin:28px auto;padding:28px;box-sizing:border-box;
+    display:grid;grid-template-columns: 1fr 420px;gap:20px;min-height:calc(100vh - 160px);
+  }
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
+  .logo{
+    display:flex;align-items:center;gap:12px;
+  }
+  .logo .mark{
+    width:56px;height:56px;border-radius:14px;
+    background:linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 6px 20px rgba(11,22,40,0.6);
+    display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+    border:1px solid var(--glass-border);
+    transform:rotate(-8deg);
+  }
+  .logo .mark::after{
+    content:"";position:absolute;inset:0;background:
+    linear-gradient(120deg, rgba(255,255,255,0.02), rgba(255,255,255,0.0));
+    mix-blend-mode:overlay;
+  }
+  .logo h1{font-size:18px;margin:0;line-height:1;color:var(--text)}
+  .logo p{margin:0;font-size:12px;color:var(--muted)}
+
+  /* Cards */
   .card{
     background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-radius:var(--card-radius);
+    border-radius: var(--card-radius);
+    padding:18px;
     border:1px solid var(--glass-border);
-    backdrop-filter: blur(var(--glass-blur)) saturate(120%);
-    box-shadow: 0 14px 50px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px) saturate(120%);
+    transition: transform .22s ease, box-shadow .22s ease;
     overflow:hidden;
-    transition: transform .28s cubic-bezier(.2,.9,.3,1), box-shadow .28s;
   }
-  .card:hover{ transform: translateY(-8px); box-shadow: 0 28px 80px rgba(2,6,23,0.75); }
+  .card:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(2,6,23,0.8)}
+  .card h2{margin:0 0 12px 0;font-size:16px;color:var(--text)}
+  .muted{color:var(--muted);font-size:13px}
 
-  .card-body{ padding:20px; } /* внутренние отступы чтобы поля не прилегали к краю */
-
-  header{ display:flex; gap:14px; align-items:center; margin-bottom:12px; }
-  .logo{
-    width:64px;height:64px;border-radius:14px;
-    background: linear-gradient(135deg,var(--accent1),var(--accent2));
-    display:flex;align-items:center;justify-content:center;font-weight:800;color:#021;
-    box-shadow: 0 10px 36px rgba(123,97,255,0.14);
-    transform: rotate(-6deg);
+  /* Layout */
+  .left{display:grid;grid-template-rows: auto 1fr;gap:20px;}
+  .grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:20px;
   }
-  h1{ margin:0; font-size:20px; }
-  .subtitle{ color:var(--muted); font-size:13px; margin-top:4px; }
-
-  /* Left column */
-  .left{ display:flex; flex-direction:column; gap:var(--gap); }
 
   /* Map card */
-  .map-card{ height:420px; display:flex; flex-direction:column; }
-  .map-frame{ flex:1; border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,0.04); }
+  .map-card{height:420px;padding:0;display:flex;flex-direction:column}
+  .map-header{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:space-between}
+  .map-embed{flex:1;border-radius:0 0 var(--card-radius) var(--card-radius);overflow:hidden}
+  .map-embed iframe{width:100%;height:100%;border:0;display:block}
 
-  /* Pomodoro card */
-  .pom-card{ display:flex; flex-direction:column; gap:12px; }
-
-  .pom-row{ display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
-
-  .timer{
-    width:220px;height:220px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    background: radial-gradient(circle at 30% 20%, rgba(127,90,255,0.12), transparent 10%), rgba(255,255,255,0.02);
-    border:1px solid rgba(255,255,255,0.04);
-    box-shadow: 0 10px 36px rgba(0,0,0,0.6);
-    position:relative; transition: transform .25s;
-  }
-  .timer.running{ transform: scale(1.04); box-shadow: 0 22px 70px rgba(79,195,247,0.09); }
-  .time-display{ font-size:36px; font-weight:800; color:var(--text); letter-spacing:1px; }
-
-  .controls{ display:flex; flex-direction:column; gap:10px; min-width:260px; }
-
+  /* Timer */
+  .timer-display{font-size:48px;font-weight:600;letter-spacing:1px;text-align:center;margin:8px 0;color:var(--text)}
+  .timer-controls{display:flex;gap:8px;justify-content:center;margin-top:8px}
   .btn{
-    background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-    border:1px solid rgba(255,255,255,0.06);
-    color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer;
-    transition: transform .12s, box-shadow .12s, background .18s;
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    color:var(--text);border:1px solid rgba(255,255,255,0.04);padding:10px 14px;border-radius:12px;cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease, background .12s;
   }
-  .btn:active{ transform: translateY(2px); }
-  .btn.primary{ background: linear-gradient(90deg,var(--accent1),var(--accent2)); color:#021; font-weight:700; box-shadow: 0 10px 30px rgba(123,97,255,0.12); }
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:linear-gradient(90deg,var(--accent-1),var(--accent-2));box-shadow:0 6px 18px rgba(11,22,40,0.6);color:#fff}
+  .small{font-size:13px;padding:8px 10px;border-radius:10px}
+
+  .timer-settings{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:10px}
+  .timer-settings input[type="number"]{width:80px;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text);text-align:center}
 
   /* Tasks */
-  .tasks-list{ display:flex; flex-direction:column; gap:10px; max-height:260px; overflow:auto; padding-right:6px; }
-  .task{ display:flex; align-items:center; gap:10px; padding:12px; border-radius:12px; background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04); }
-  .task .title{ font-weight:700; color:var(--text); }
-  .task .meta{ font-size:12px; color:var(--muted); margin-left:auto; }
+  .tasks-list{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow:auto;padding-right:6px}
+  .task-item{
+    display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.02);
+    background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+  }
+  .task-meta{display:flex;flex-direction:column;flex:1;min-width:0}
+  .task-title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .task-sub{font-size:12px;color:var(--muted)}
+  .priority-badge{padding:6px 8px;border-radius:10px;font-size:12px;color:#04102a}
+  .prio-low{background:#c7f9cc}
+  .prio-med{background:#fff3b0}
+  .prio-high{background:#ffb4a2}
+  .prio-urgent{background:#ff7b7b}
+
+  /* Form */
+  form .row{display:flex;gap:8px;align-items:center;margin-bottom:8px;min-width:0}
+  form label{min-width:110px;color:var(--muted);font-size:13px}
+  input[type="text"], input[type="datetime-local"], input[type="date"], input[type="time"], select, textarea{
+    background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+    border:1px solid rgba(255,255,255,0.04);color:var(--text);padding:10px;border-radius:10px;flex:1;
+    outline:none;min-width:0;
+  }
+  /* Ensure inputs inside .row don't overflow */
+  .row input, .row select, .row textarea {flex:1;min-width:0;display:block;width:100%;}
+  select{appearance:auto;padding-right:28px}
+  textarea{min-height:100px;resize:vertical}
 
   /* Right column */
-  .right{ display:flex; flex-direction:column; gap:var(--gap); }
+  .right{display:flex;flex-direction:column;gap:20px}
+  .compact{padding:12px}
 
-  .form-header{ margin-bottom:8px; }
-  .muted{ color:var(--muted); font-size:13px; }
-
-  /* Row system: равные колонки, не выходят за контейнер */
-  .row{
-    display:flex;
-    gap:12px;
-    margin-bottom:12px;
-    align-items:flex-start;
-    flex-wrap:wrap;
-  }
-  .row .col{
-    flex:1 1 0;
-    min-width:0; /* важно: позволяет корректно сжиматься */
-  }
-  .col--small{ flex:0 0 150px; min-width:120px; }
-
-  label{ display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
-
-  /* Inputs and selects: dark background and readable text */
-  input[type="text"], input[type="date"], input[type="time"], input[type="number"], select, textarea{
-    width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.06);
-    background: linear-gradient(180deg, rgba(0,0,0,0.20), rgba(255,255,255,0.01));
-    color:var(--text); outline:none; font-size:14px;
-    transition: box-shadow .14s, transform .14s;
-    max-width:100%;
-  }
-  input:focus, select:focus, textarea:focus{ box-shadow: 0 10px 36px rgba(79,195,247,0.08); transform: translateY(-3px); }
-
-  /* Select arrow and dark background */
-  select{
-    -webkit-appearance:none; -moz-appearance:none; appearance:none;
-    background-image:
-      linear-gradient(45deg, transparent 50%, var(--text) 50%),
-      linear-gradient(135deg, var(--text) 50%, transparent 50%),
-      linear-gradient(to right, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    background-position: calc(100% - 18px) calc(1em + 2px), calc(100% - 13px) calc(1em + 2px), 0 0;
-    background-size: 6px 6px, 6px 6px, 100% 100%;
-    background-repeat: no-repeat;
-    padding-right:40px;
+  /* Footer moved out of aside and centered */
+  .site-footer{
+    position:fixed;left:0;right:0;bottom:18px;margin:0 auto;max-width:1200px;padding:10px 28px;text-align:center;color:var(--muted);font-size:13px;
+    pointer-events:none;
   }
 
-  .note{ font-size:12px; color:var(--muted); margin-top:6px; }
-
-  footer{ display:flex; justify-content:space-between; align-items:center; margin-top:8px; color:var(--muted); font-size:13px; }
-
-  /* Animations */
-  @keyframes floaty { 0%{ transform: translateY(0); } 50%{ transform: translateY(-8px); } 100%{ transform: translateY(0); } }
-  .logo{ animation: floaty 6s ease-in-out infinite; }
-
-  @media (max-width:720px){
-    .row{ flex-direction:column; }
-    .col--small{ flex:1 1 0; min-width:0; }
-    .timer{ width:180px; height:180px; margin:0 auto; }
-    .container{ grid-template-columns: 1fr; }
+  /* Responsive */
+  @media (max-width:980px){
+    .app{grid-template-columns:1fr; padding:18px}
+    .grid{grid-template-columns:1fr}
+    .map-card{height:320px}
+    .site-footer{position:static;margin-top:18px;padding:18px 0;pointer-events:auto}
   }
 
-  /* Safety */
-  form, .card, input, select, textarea { word-break:break-word; overflow-wrap:break-word; }
-
+  /* small touches */
+  .logo-anim{animation:logoShine 6s linear infinite}
+  @keyframes logoShine{0%{transform:rotate(-8deg) translateY(0)}50%{transform:rotate(-8deg) translateY(-3px)}100%{transform:rotate(-8deg) translateY(0)}}
+  .fade{transition:opacity .25s ease}
+  .hidden{display:none}
+  .next-task{display:flex;align-items:center;gap:10px;justify-content:space-between}
 </style>
 </head>
 <body>
-
-<div class="container">
-  <!-- LEFT COLUMN -->
-  <div class="left">
-    <!-- Карточка с картой Windy -->
-    <div class="card">
-      <div class="card-body">
-        <header>
-          <div class="logo">WFM</div>
+  <div class="app" role="application" aria-label="Work Flow Manager">
+    <div class="left">
+      <header>
+        <div class="logo">
+          <div class="mark logo-anim" aria-hidden="true">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" style="filter:drop-shadow(0 6px 12px rgba(11,22,40,0.6))">
+              <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#0ea5ff"/><stop offset="1" stop-color="#6b21a8"/></linearGradient></defs>
+              <rect x="2" y="2" width="20" height="20" rx="5" fill="url(#g)"></rect>
+              <path d="M7 12h10M7 8h10M7 16h6" stroke="rgba(255,255,255,0.9)" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+          </div>
           <div>
             <h1>Work Flow Manager</h1>
-            <div class="subtitle"><strong></strong></div>
+            <p>Liquid glass • Полевая работа • Версия 4.0</p>
           </div>
-        </header>
+        </div>
+        <div class="muted">Версия 4.0</div>
+      </header>
 
-        <div class="map-card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-            <div><strong>Интерактивная карта Windy</strong><div class="muted"></div></div>
-            <div class="muted">Обновляется автоматически</div>
+      <div class="card map-card" id="mapCard">
+        <div class="map-header">
+          <div>
+            <strong>Интерактивная карта Windy</strong>
+            <div class="muted" style="font-size:12px">Погодные слои — Windy embed (iframe)</div>
           </div>
-          <div class="map-frame" id="windy-container" aria-hidden="false">
-            <iframe
-              title="Windy map"
-              src="https://embed.windy.com/embed2.html?lat=53.9&lon=27.5667&detailLat=53.9&detailLon=27.5667&width=100%&height=100%&zoom=8&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=kt"
-              style="width:100%;height:100%;border:0;"
-              allowfullscreen
-              referrerpolicy="no-referrer-when-downgrade"
-            ></iframe>
+          <div class="muted" style="font-size:13px">Карта в отдельной карточке</div>
+        </div>
+        <div class="map-embed" aria-hidden="false">
+          <!-- Free Windy embed. При необходимости замените lat/lon/zoom или вставьте API-ключ в URL -->
+          <iframe
+            title="Windy map embed"
+            src="https://embed.windy.com/embed2.html?lat=53.9&lon=27.5667&zoom=6&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=&calendar=now&pressure=&type=map&detail=&detailLat=53.9&detailLon=27.5667"
+            allowfullscreen
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card" id="timerCard">
+          <h2>Pomodoro таймер</h2>
+          <div class="muted">Рабочий / Перерыв — настраиваемые интервалы</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+            <div>
+              <div class="timer-display" id="timerDisplay">25:00</div>
+              <div class="muted" style="text-align:center" id="timerMode">Режим: Рабочий</div>
+            </div>
+            <div style="width:1px;background:rgba(255,255,255,0.02);height:120px;margin-left:12px"></div>
+          </div>
+
+          <div class="timer-settings" aria-hidden="false">
+            <label class="muted">Работа (мин)</label>
+            <input type="number" id="workMinutes" min="1" value="25" />
+            <label class="muted">Перерыв (мин)</label>
+            <input type="number" id="breakMinutes" min="1" value="5" />
+          </div>
+
+          <div class="timer-controls">
+            <button class="btn primary" id="startBtn">Старт</button>
+            <button class="btn" id="pauseBtn">Пауза</button>
+            <button class="btn" id="resetBtn">Сброс</button>
+          </div>
+        </div>
+
+        <div class="card" id="tasksCard">
+          <h2>Задачи</h2>
+          <div class="muted">Добавляйте задачи, указывайте приоритет и зависимости</div>
+
+          <form id="taskForm" class="compact" onsubmit="return false;">
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <input type="text" id="taskName" placeholder="Название задачи" required style="flex:1" />
+              <select id="taskPriority" required>
+                <option value="Средний">Средний</option>
+                <option value="Низкий">Низкий</option>
+                <option value="Высокий">Высокий</option>
+                <option value="Срочно">Срочно</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="taskDependency" style="flex:1">
+                <option value="">Без зависимости</option>
+              </select>
+              <button class="btn small" id="addTaskBtn">Добавить</button>
+            </div>
+          </form>
+
+          <div style="margin-top:12px" class="tasks-list" id="tasksList" aria-live="polite"></div>
+
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center;justify-content:space-between">
+            <div class="muted">Выбор следующей задачи учитывает приоритет и зависимости</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn small" id="pickNextBtn">Выбрать следующую</button>
+              <button class="btn small" id="clearDoneBtn">Удалить выполненные</button>
+            </div>
+          </div>
+
+          <div style="margin-top:10px" id="nextTaskBox" class="next-task hidden">
+            <div>
+              <div class="muted">Следующая задача</div>
+              <div id="nextTaskTitle" style="font-weight:700"></div>
+            </div>
+            <div>
+              <button class="btn small" id="startNextBtn">Начать</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Отдельная карточка с Pomodoro и задачами -->
-    <div class="card">
-      <div class="card-body pom-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div><strong>Pomodoro таймер</strong><div class="muted">Фокус и отдых</div></div>
-          <div class="muted"></div>
-        </div>
+    <aside class="right">
+      <div class="card">
+        <h2>Бланк наблюдений</h2>
+        <div class="muted">Автозаполнение даты/времени, валидация полей</div>
 
-        <div class="pom-row">
-          <div class="timer" id="timerCircle" role="timer" aria-live="polite">
-            <div class="time-display" id="timeDisplay">25:00</div>
-          </div>
-
-          <div class="controls">
-            <div style="display:flex;gap:8px;">
-              <button class="btn primary" id="startBtn">Старт</button>
-              <button class="btn" id="pauseBtn">Пауза</button>
-              <button class="btn" id="resetBtn">Сброс</button>
-            </div>
-
-            <div style="display:flex;gap:8px;">
-              <label style="flex:1;">
-                <div class="muted">Длительность (мин)</div>
-                <input type="number" id="pomMinutes" value="25" min="1" max="120" />
-              </label>
-              <label style="width:120px;">
-                <div class="muted">Перерыв (мин)</div>
-                <input type="number" id="breakMinutes" value="5" min="1" max="60" />
-              </label>
-            </div>
-
-            <div class="muted"></div>
-          </div>
-        </div>
-
-        <hr style="border:none;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.03),transparent);margin:12px 0;">
-
-        <div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div><strong>Задачи и логика</strong><div class="muted">Добавляйте задачи, ставьте приоритет и зависимости</div></div>
-            <div class="muted">Подсказка: выберите следующую задачу</div>
-          </div>
-
-          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-            <input id="taskTitle" type="text" placeholder="Название задачи" style="flex:1;min-width:160px;border-radius:12px;padding:10px 12px;" />
-            <select id="taskPriority" style="width:160px;border-radius:12px;padding:10px 12px;">
-              <option value="low">Низкий</option>
-              <option value="medium" selected>Средний</option>
-              <option value="high">Высокий</option>
-              <option value="urgent">Срочно</option>
-            </select>
-            <button class="btn" id="addTaskBtn">Добавить</button>
-          </div>
-
-          <div class="tasks-list" id="tasksList" aria-live="polite"></div>
-
-          <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
-            <button class="btn" id="suggestBtn">Предложить следующую задачу</button>
-            <div class="muted" id="suggestion"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- RIGHT COLUMN -->
-  <div class="right">
-    <div class="card">
-      <div class="card-body">
-        <div class="form-header">
-          <strong>Бланк наблюдений</strong>
-          <div class="muted">Заполните поля и отправьте</div>
-        </div>
-
-        <form id="obsForm" action="https://formsubmit.co/communityofdevelopingcraftsmen@gmail.com" method="POST" target="_blank" novalidate>
+        <form id="obsForm" action="https://formsubmit.co/communityofdevelopingcraftsmen@gmail.com" method="POST" class="compact">
           <input type="hidden" name="_captcha" value="false" />
-          <input type="hidden" name="_subject" value="Work Flow Manager — заполненный бланк" />
+          <input type="hidden" name="_subject" value="Наблюдение — Work Flow Manager 4.0" />
 
-          <!-- Дата и Время в одной строке -->
           <div class="row">
-            <div class="col col--small">
-              <label for="dateField">Дата</label>
-              <input id="dateField" name="Дата" type="date" required />
-            </div>
-            <div class="col col--small">
-              <label for="timeField">Время</label>
-              <input id="timeField" name="Время" type="time" required />
-            </div>
+            <label for="obsDate">Дата</label>
+            <input id="obsDate" name="Дата" type="date" required />
           </div>
 
-          <!-- Микрорайон на отдельной строке -->
+          <!-- Исправлено: время теперь в той же строке (.row) и input имеет flex:1 -->
           <div class="row">
-            <div class="col">
-              <label for="micro">Микрорайон</label>
-              <input id="micro" name="Микрорайон" type="text" placeholder="Введите микрорайон" required />
-            </div>
+            <label for="obsTime">Время</label>
+            <input id="obsTime" name="Время" type="time" required />
           </div>
 
-          <!-- Температура и Влажность -->
           <div class="row">
-            <div class="col">
-              <label for="temp">Температура</label>
-              <input id="temp" name="Температура" type="text" placeholder="+5.2" inputmode="numeric" pattern="^[0-9:+\\-;.,\\s]+$" required />
-              <div class="note"></div>
-            </div>
-            <div class="col">
-              <label for="hum">Влажность</label>
-              <input id="hum" name="Влажность" type="text" placeholder="45" inputmode="numeric" pattern="^[0-9:+\\-;.,\\s]+$" required />
-            </div>
+            <label for="micro">Микрорайон</label>
+            <input id="micro" name="Микрорайон" type="text" required />
           </div>
-
-          <!-- Погода и Ветер -->
           <div class="row">
-            <div class="col">
-              <label for="weather">Погода</label>
-              <select id="weather" name="Погода" required>
-                <option value="">Выберите...</option>
-                <option>Ясно</option>
-                <option>Засуха</option>
-                <option>Туман</option>
-                <option>Облачно</option>
-                <option>Пасмурно</option>
-                <option>Дождь</option>
-                <option>Гроза</option>
-                <option>Град</option>
-                <option>Снег</option>
-              </select>
-            </div>
-            <div class="col">
-              <label for="wind">Ветер</label>
-              <select id="wind" name="Ветер" required>
-                <option value="">Выберите...</option>
-                <option>Нейтральный</option>
-                <option>Слабый</option>
-                <option>Легкий</option>
-                <option>Умеренный</option>
-                <option>Свежий ветер</option>
-                <option>Сильный ветер</option>
-                <option>Шторм</option>
-                <option>Ураган</option>
-              </select>
-            </div>
+            <label for="temp">Температура</label>
+            <input id="temp" name="Температура" type="text" inputmode="numeric" required />
           </div>
-
-          <!-- Kt -->
           <div class="row">
-            <div class="col">
-              <label for="kt">Kt</label>
-              <input id="kt" name="Kt" type="text" placeholder="+3.2" inputmode="numeric" pattern="^[0-9:+\\-;.,\\s]+$" required />
-            </div>
+            <label for="hum">Влажность</label>
+            <input id="hum" name="Влажность" type="text" inputmode="numeric" required />
           </div>
-
-          <!-- Исполнитель и устройство -->
           <div class="row">
-            <div class="col">
-              <label for="executor">Выполняет работу</label>
-              <input id="executor" name="Выполняет работу" type="text" placeholder="Ваше имя" required />
-            </div>
-            <div class="col">
-              <label for="device">Устройство</label>
-              <select id="device" name="Устройство" required>
-                <option value="">Выберите...</option>
-                <option>Смартфон</option>
-                <option>Планшет</option>
-                <option>Компьютер</option>
-              </select>
-            </div>
+            <label for="weather">Погода</label>
+            <select id="weather" name="Погода" required>
+              <option>Ясно</option><option>Засуха</option><option>Туман</option><option>Облачно</option><option>Пасмурно</option><option>Дождь</option><option>Гроза</option><option>Град</option><option>Снег</option>
+            </select>
+          </div>
+          <div class="row">
+            <label for="wind">Ветер</label>
+            <select id="wind" name="Ветер" required>
+              <option>Нейтральный</option><option>Слабый</option><option>Легкий</option><option>Умеренный</option><option>Свежий ветер</option><option>Сильный ветер</option><option>Шторм</option><option>Ураган</option>
+            </select>
+          </div>
+          <div class="row">
+            <label for="kt">Kt</label>
+            <input id="kt" name="Kt" type="text" inputmode="numeric" />
+          </div>
+          <div class="row">
+            <label for="who">Выполняет работу</label>
+            <input id="who" name="Выполняет работу" type="text" required />
+          </div>
+          <div class="row">
+            <label for="device">Устройство</label>
+            <select id="device" name="Устройство" required>
+              <option>Смартфон</option><option>Планшет</option><option>Компьютер</option>
+            </select>
           </div>
 
-          <div style="display:flex;gap:12px;align-items:center;margin-top:8px;">
-            <button class="btn primary" type="submit" id="submitBtn">Отправить</button>
-            <div class="muted"></div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button class="btn" type="reset">Очистить</button>
+            <button class="btn primary" id="submitObsBtn" type="submit">Отправить</button>
           </div>
-
-          <div class="note"></div>
         </form>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="card-body">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div><strong>Настройки</strong><div class="muted">Тема и поведение</div></div>
-          <div class="muted">v4.0</div>
-        </div>
-
-        <div style="margin-top:12px;">
-          <label class="muted">Тёмная тема</label>
-          <div style="display:flex;gap:8px;margin-top:8px;">
-            <button class="btn" id="keepDark">Оставить тёмную</button>
-            <button class="btn" id="resetAll">Сброс задач</button>
-          </div>
-          <div class="muted" style="margin-top:10px;">Оптимизировано для телефонов и iPhone.</div>
-        </div>
-      </div>
-    </div>
-
-    <footer>
-      <div>Work Flow Manager</div>
-      <div>Версия <strong>4.0</strong></div>
-    </footer>
+    </aside>
   </div>
-</div>
+
+  <!-- Footer вынесен из aside и центрирован по ширине страницы -->
+  <footer class="site-footer"></footer>
 
 <script>
-  // Автозаполнение даты и времени
-  (function fillDateTime(){
-    const dateField = document.getElementById('dateField');
-    const timeField = document.getElementById('timeField');
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth()+1).padStart(2,'0');
-    const d = String(now.getDate()).padStart(2,'0');
-    dateField.value = y + '-' + m + '-' + d;
-    const hh = String(now.getHours()).padStart(2,'0');
-    const mm = String(now.getMinutes()).padStart(2,'0');
-    timeField.value = hh + ':' + mm;
-  })();
+(function(){
+  'use strict';
 
-  // Очистка полей temp/hum/kt
-  function sanitizeValue(v){ return v.replace(/[^0-9:+\\-;.,\\s]/g, ''); }
-  ['temp','hum','kt'].forEach(id=>{
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('input', (e)=>{
-      const clean = sanitizeValue(e.target.value);
-      if (clean !== e.target.value) e.target.value = clean;
-    });
-  });
+  document.addEventListener('DOMContentLoaded', function(){
+    try {
+      /* ---------------------------
+         Pomodoro Timer
+         --------------------------- */
+      const startBtn = document.getElementById('startBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const timerDisplay = document.getElementById('timerDisplay');
+      const timerModeLabel = document.getElementById('timerMode');
+      const workMinutesInput = document.getElementById('workMinutes');
+      const breakMinutesInput = document.getElementById('breakMinutes');
 
-  // Валидация и отправка формы (FormSubmit)
-  const obsForm = document.getElementById('obsForm');
-  obsForm.addEventListener('submit', function(e){
-    const requiredFields = obsForm.querySelectorAll('[required]');
-    for (let f of requiredFields){
-      if (!f.value || String(f.value).trim() === ''){
-        e.preventDefault();
-        alert('Пожалуйста, заполните все обязательные поля.');
-        f.focus();
-        return false;
-      }
-    }
-    const checks = ['temp','hum','kt'];
-    for (let id of checks){
-      const el = document.getElementById(id);
-      if (el && !/^[0-9:+\\-;.,\\s]+$/.test(el.value)){
-        e.preventDefault();
-        alert('Поле "' + (el.previousElementSibling ? el.previousElementSibling.innerText : id) + '" содержит недопустимые символы.');
-        el.focus();
-        return false;
-      }
-    }
-    const btn = document.getElementById('submitBtn');
-    if (btn.dataset.sending === '1'){ e.preventDefault(); return false; }
-    btn.dataset.sending = '1';
-    btn.innerText = 'Отправка...';
-    setTimeout(()=>{ btn.dataset.sending = '0'; btn.innerText = 'Отправить'; }, 4000);
-  });
+      if (!startBtn || !pauseBtn || !resetBtn || !timerDisplay) {
+        console.warn('Timer elements missing, skipping timer init');
+      } else {
+        let intervalId = null;
+        let remaining = 25 * 60;
+        let isRunning = false;
+        let isWorkMode = true;
+        let preventMultipleStart = false;
 
-  // Pomodoro
-  (function pomodoro(){
-    let timerSeconds = 25*60;
-    let running = false;
-    let interval = null;
-    const display = document.getElementById('timeDisplay');
-    const startBtn = document.getElementById('startBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const pomMinutes = document.getElementById('pomMinutes');
-    const breakMinutes = document.getElementById('breakMinutes');
-    const timerCircle = document.getElementById('timerCircle');
-
-    function format(s){ const mm = String(Math.floor(s/60)).padStart(2,'0'); const ss = String(s%60).padStart(2,'0'); return mm + ':' + ss; }
-    function updateDisplay(){ display.textContent = format(timerSeconds); if (running) timerCircle.classList.add('running'); else timerCircle.classList.remove('running'); }
-
-    function start(){
-      if (running) return;
-      running = true;
-      interval = setInterval(()=>{
-        if (timerSeconds > 0){ timerSeconds--; updateDisplay(); } else {
-          clearInterval(interval); running = false; updateDisplay();
-          try { new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg').play(); } catch(e){}
-          alert('Время истекло!');
-          timerSeconds = parseInt(breakMinutes.value || 5,10)*60;
+        function formatTime(sec){
+          const m = Math.floor(sec/60).toString().padStart(2,'0');
+          const s = (sec%60).toString().padStart(2,'0');
+          return m + ':' + s;
         }
-      },1000);
-      updateDisplay();
-    }
-    function pause(){ running = false; clearInterval(interval); updateDisplay(); }
-    function reset(){ running = false; clearInterval(interval); timerSeconds = parseInt(pomMinutes.value || 25,10)*60; updateDisplay(); }
 
-    timerSeconds = parseInt(pomMinutes.value || 25,10)*60;
-    updateDisplay();
-    startBtn.addEventListener('click', start);
-    pauseBtn.addEventListener('click', pause);
-    resetBtn.addEventListener('click', reset);
-    if (pomMinutes) pomMinutes.addEventListener('change', ()=>{ if (!running){ timerSeconds = parseInt(pomMinutes.value || 25,10)*60; updateDisplay(); } });
-  })();
+        function updateDisplay(){
+          timerDisplay.textContent = formatTime(remaining);
+          timerModeLabel.textContent = 'Режим: ' + (isWorkMode ? 'Рабочий' : 'Перерыв');
+        }
 
-  // Задачи с логикой
-  (function tasksModule(){
-    const tasks = [];
-    const tasksList = document.getElementById('tasksList');
-    const addBtn = document.getElementById('addTaskBtn');
-    const titleInput = document.getElementById('taskTitle');
-    const prioritySelect = document.getElementById('taskPriority');
-    const suggestBtn = document.getElementById('suggestBtn');
-    const suggestion = document.getElementById('suggestion');
+        function playBeep(){
+          try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'sine';
+            o.frequency.value = 880;
+            g.gain.value = 0.0001;
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.start();
+            g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 1.0);
+            o.stop(ctx.currentTime + 1.05);
+          } catch (e) {
+            console.error('Audio error', e);
+          }
+        }
 
-    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+        function startTimer(){
+          if (isRunning || preventMultipleStart) return;
+          preventMultipleStart = true;
+          isRunning = true;
+          intervalId = setInterval(() => {
+            try {
+              remaining--;
+              if (remaining <= 0) {
+                playBeep();
+                clearInterval(intervalId);
+                intervalId = null;
+                isRunning = false;
+                // switch mode
+                isWorkMode = !isWorkMode;
+                const minutes = isWorkMode ? parseInt(workMinutesInput.value,10) || 25 : parseInt(breakMinutesInput.value,10) || 5;
+                remaining = minutes * 60;
+                updateDisplay();
+                // auto-start next interval
+                setTimeout(() => {
+                  preventMultipleStart = false;
+                  startTimer();
+                }, 300);
+              } else {
+                updateDisplay();
+              }
+            } catch (e) {
+              console.error('Timer tick error', e);
+            }
+          }, 1000);
+          preventMultipleStart = false;
+        }
 
-    function render(){
-      tasksList.innerHTML = '';
-      tasks.forEach(t=>{
-        const el = document.createElement('div');
-        el.className = 'task';
-        el.dataset.id = t.id;
-        el.innerHTML = `
-          <input type="checkbox" ${t.done ? 'checked' : ''} style="width:18px;height:18px;" />
-          <div style="display:flex;flex-direction:column;">
-            <div class="title">${escapeHtml(t.title)}</div>
-            <div class="muted" style="font-size:12px;">Приоритет: ${t.priority}${t.dependsTitle ? ' • Зависит от: ' + escapeHtml(t.dependsTitle) : ''}</div>
-          </div>
-          <div class="meta">
-            <button class="btn" data-action="del" style="padding:6px 8px;">Удалить</button>
-          </div>
-        `;
-        el.querySelector('input[type="checkbox"]').addEventListener('change', (e)=>{ t.done = e.target.checked; render(); });
-        el.querySelector('button[data-action="del"]').addEventListener('click', ()=>{ const idx = tasks.findIndex(x=>x.id===t.id); if (idx>=0) tasks.splice(idx,1); render(); });
-        tasksList.appendChild(el);
-      });
-    }
+        function pauseTimer(){
+          if (intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+            isRunning = false;
+          }
+        }
 
-    addBtn.addEventListener('click', ()=>{
-      const title = titleInput.value.trim();
-      if (!title){ alert('Введите название задачи'); titleInput.focus(); return; }
-      const id = 't' + Date.now();
-      const priority = prioritySelect.value;
-      let depends = null, dependsTitle = '';
-      if (tasks.length>0){
-        const last = tasks.slice().reverse().find(x=>!x.done);
-        if (last){ depends = last.id; dependsTitle = last.title; }
+        function resetTimer(){
+          pauseTimer();
+          isWorkMode = true;
+          remaining = (parseInt(workMinutesInput.value,10) || 25) * 60;
+          updateDisplay();
+        }
+
+        remaining = (parseInt(workMinutesInput.value,10) || 25) * 60;
+        updateDisplay();
+
+        startBtn.addEventListener('click', function(){
+          try { startTimer(); } catch(e){ console.error(e); }
+        });
+        pauseBtn.addEventListener('click', function(){ try{ pauseTimer(); }catch(e){console.error(e)} });
+        resetBtn.addEventListener('click', function(){ try{ resetTimer(); }catch(e){console.error(e)} });
+
+        workMinutesInput.addEventListener('change', function(){
+          if (!isRunning && isWorkMode) {
+            remaining = (parseInt(this.value,10) || 25) * 60;
+            updateDisplay();
+          }
+        });
+        breakMinutesInput.addEventListener('change', function(){
+          if (!isRunning && !isWorkMode) {
+            remaining = (parseInt(this.value,10) || 5) * 60;
+            updateDisplay();
+          }
+        });
       }
-      tasks.push({id,title,priority,done:false,depends,dependsTitle});
-      titleInput.value = '';
-      render();
-    });
 
-    suggestBtn.addEventListener('click', ()=>{
-      const pending = tasks.filter(t=>!t.done);
-      if (pending.length===0){ suggestion.textContent = 'Нет незавершённых задач'; return; }
-      const available = pending.filter(t=>{ if (!t.depends) return true; const dep = tasks.find(x=>x.id===t.depends); return dep ? dep.done : true; });
-      if (available.length===0){ suggestion.textContent = 'Нет доступных задач (зависимости не выполнены)'; return; }
-      const order = {urgent:4, high:3, medium:2, low:1};
-      available.sort((a,b)=> (order[b.priority]||0) - (order[a.priority]||0));
-      const pick = available[0];
-      suggestion.textContent = 'Следующая: ' + pick.title + ' (приоритет: ' + pick.priority + ')';
-    });
+      /* ---------------------------
+         Tasks with dependencies
+         --------------------------- */
+      const taskForm = document.getElementById('taskForm');
+      const addTaskBtn = document.getElementById('addTaskBtn');
+      const taskNameInput = document.getElementById('taskName');
+      const taskPrioritySelect = document.getElementById('taskPriority');
+      const taskDependencySelect = document.getElementById('taskDependency');
+      const tasksList = document.getElementById('tasksList');
+      const pickNextBtn = document.getElementById('pickNextBtn');
+      const nextTaskBox = document.getElementById('nextTaskBox');
+      const nextTaskTitle = document.getElementById('nextTaskTitle');
+      const startNextBtn = document.getElementById('startNextBtn');
+      const clearDoneBtn = document.getElementById('clearDoneBtn');
 
-    // Примеры
-    tasks.push({id:'t0',title:'Проверить карту Windy',priority:'medium',done:false,depends:null,dependsTitle:''});
-    tasks.push({id:'t1',title:'Заполнить бланк наблюдений',priority:'high',done:false,depends:null,dependsTitle:''});
-    render();
-  })();
+      let tasks = [];
 
-  // Настройки
-  document.getElementById('keepDark').addEventListener('click', ()=>{ alert('Тёмная тема активна. Переключатель можно расширить при необходимости.'); });
-  document.getElementById('resetAll').addEventListener('click', ()=>{
-    if (!confirm('Сбросить локальные данные (задачи)?')) return;
-    location.reload();
+      function refreshDependencyOptions(){
+        if (!taskDependencySelect) return;
+        const prev = taskDependencySelect.value || '';
+        taskDependencySelect.innerHTML = '<option value="">Без зависимости</option>';
+        tasks.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.id;
+          opt.textContent = t.name;
+          taskDependencySelect.appendChild(opt);
+        });
+        taskDependencySelect.value = prev;
+      }
+
+      function renderTasks(){
+        if (!tasksList) return;
+        tasksList.innerHTML = '';
+        tasks.slice().sort((a,b)=> {
+          const order = { 'Срочно':4, 'Высокий':3, 'Средний':2, 'Низкий':1 };
+          const pa = order[a.priority]||0, pb = order[b.priority]||0;
+          if (pa !== pb) return pb - pa;
+          return a.createdAt - b.createdAt;
+        }).forEach(t => {
+          const el = document.createElement('div');
+          el.className = 'task-item';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = !!t.done;
+          cb.addEventListener('change', function(){
+            t.done = cb.checked;
+            renderTasks();
+          });
+
+          const meta = document.createElement('div');
+          meta.className = 'task-meta';
+          const title = document.createElement('div');
+          title.className = 'task-title';
+          title.textContent = t.name;
+          const sub = document.createElement('div');
+          sub.className = 'task-sub';
+          const dep = t.dependencyId ? (tasks.find(x=>x.id===t.dependencyId)?.name || '—') : 'Нет зависимости';
+          sub.textContent = `Приоритет: ${t.priority} • Зависимость: ${dep}`;
+          meta.appendChild(title);
+          meta.appendChild(sub);
+
+          const badge = document.createElement('div');
+          badge.className = 'priority-badge';
+          if (t.priority === 'Низкий') badge.classList.add('prio-low');
+          if (t.priority === 'Средний') badge.classList.add('prio-med');
+          if (t.priority === 'Высокий') badge.classList.add('prio-high');
+          if (t.priority === 'Срочно') badge.classList.add('prio-urgent');
+          badge.textContent = t.priority;
+
+          const del = document.createElement('button');
+          del.className = 'btn small';
+          del.textContent = 'Удалить';
+          del.addEventListener('click', function(){
+            tasks = tasks.filter(x=>x.id !== t.id);
+            tasks.forEach(x => { if (x.dependencyId === t.id) x.dependencyId = null; });
+            refreshDependencyOptions();
+            renderTasks();
+          });
+
+          el.appendChild(cb);
+          el.appendChild(meta);
+          el.appendChild(badge);
+          el.appendChild(del);
+          tasksList.appendChild(el);
+        });
+      }
+
+      function addTask(name, priority, dependencyId){
+        const id = 't' + Date.now() + Math.floor(Math.random()*1000);
+        tasks.push({id, name, priority, dependencyId: dependencyId || null, done:false, createdAt: Date.now()});
+        refreshDependencyOptions();
+        renderTasks();
+      }
+
+      if (addTaskBtn && taskNameInput && taskPrioritySelect){
+        addTaskBtn.addEventListener('click', function(e){
+          e.preventDefault();
+          const name = taskNameInput.value.trim();
+          const pr = taskPrioritySelect.value;
+          const dep = taskDependencySelect.value || null;
+          if (!name) return;
+          addTask(name, pr, dep);
+          taskNameInput.value = '';
+          taskPrioritySelect.value = 'Средний';
+        });
+      } else {
+        console.warn('Task elements missing');
+      }
+
+      function pickNextTask(){
+        const order = { 'Срочно':4, 'Высокий':3, 'Средний':2, 'Низкий':1 };
+        const candidates = tasks.filter(t => !t.done && (!t.dependencyId || (tasks.find(x=>x.id===t.dependencyId) && tasks.find(x=>x.id===t.dependencyId).done)));
+        if (candidates.length === 0) return null;
+        candidates.sort((a,b) => {
+          const pa = order[a.priority]||0, pb = order[b.priority]||0;
+          if (pa !== pb) return pb - pa;
+          return a.createdAt - b.createdAt;
+        });
+        return candidates[0];
+      }
+
+      if (pickNextBtn){
+        pickNextBtn.addEventListener('click', function(){
+          const next = pickNextTask();
+          if (next){
+            nextTaskTitle.textContent = next.name;
+            nextTaskBox.classList.remove('hidden');
+            nextTaskBox.dataset.taskId = next.id;
+          } else {
+            nextTaskTitle.textContent = 'Нет доступных задач';
+            nextTaskBox.classList.remove('hidden');
+            nextTaskBox.dataset.taskId = '';
+          }
+        });
+      }
+
+      if (startNextBtn){
+        startNextBtn.addEventListener('click', function(){
+          const id = nextTaskBox.dataset.taskId;
+          if (!id) return;
+          const t = tasks.find(x=>x.id===id);
+          if (t) {
+            t.done = true;
+            renderTasks();
+            nextTaskBox.classList.add('hidden');
+          }
+        });
+      }
+
+      if (clearDoneBtn){
+        clearDoneBtn.addEventListener('click', function(){
+          tasks = tasks.filter(t => !t.done);
+          refreshDependencyOptions();
+          renderTasks();
+        });
+      }
+
+      /* ---------------------------
+         Observation form validation & submission protection
+         --------------------------- */
+      const obsForm = document.getElementById('obsForm');
+      const obsDate = document.getElementById('obsDate');
+      const obsTime = document.getElementById('obsTime');
+      const temp = document.getElementById('temp');
+      const hum = document.getElementById('hum');
+      const kt = document.getElementById('kt');
+      const submitObsBtn = document.getElementById('submitObsBtn');
+
+      if (obsDate) obsDate.value = new Date().toISOString().slice(0,10);
+      if (obsTime) {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2,'0');
+        const mm = String(now.getMinutes()).padStart(2,'0');
+        obsTime.value = hh + ':' + mm;
+      }
+
+      const allowedRe = /[0-9:\-\+\;\.,]/g;
+      function sanitizeInput(el){
+        if (!el) return;
+        el.addEventListener('input', function(){
+          const v = this.value;
+          const filtered = (v.match(allowedRe) || []).join('');
+          if (filtered !== v) {
+            this.value = filtered;
+          }
+        });
+      }
+      sanitizeInput(temp);
+      sanitizeInput(hum);
+      sanitizeInput(kt);
+
+      let obsSubmitting = false;
+      if (obsForm){
+        obsForm.addEventListener('submit', function(e){
+          if (obsSubmitting) {
+            e.preventDefault();
+            return;
+          }
+          try {
+            if (!obsDate.value || !obsTime.value || !document.getElementById('micro').value || !temp.value || !hum.value || !document.getElementById('who').value) {
+              e.preventDefault();
+              alert('Пожалуйста, заполните все обязательные поля.');
+              return;
+            }
+            obsSubmitting = true;
+            submitObsBtn.disabled = true;
+            setTimeout(() => {
+              obsSubmitting = false;
+              submitObsBtn.disabled = false;
+            }, 5000);
+          } catch (err) {
+            console.error('Form submit error', err);
+          }
+        });
+      }
+
+      refreshDependencyOptions();
+      renderTasks();
+
+    } catch (err) {
+      console.error('Initialization error', err);
+    }
   });
-
-  // Защита от ошибок
-  window.addEventListener('error', function(e){ console.error('UI error:', e.message); });
-
-  // Предотвращение двойной отправки форм
-  (function preventDoubleSubmit(){
-    const forms = document.querySelectorAll('form');
-    forms.forEach(f=>{
-      f.addEventListener('submit', function(e){
-        const btn = f.querySelector('button[type="submit"]');
-        if (btn && btn.dataset.submitted === 'true'){ e.preventDefault(); return false; }
-        if (btn) btn.dataset.submitted = 'true';
-        setTimeout(()=>{ if (btn) btn.dataset.submitted = 'false'; }, 4000);
-      });
-    });
-  })();
-
+})();
 </script>
 </body>
 </html>
