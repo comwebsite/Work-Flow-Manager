@@ -1,466 +1,600 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Zentry</title>
-  <style>
-    :root {
-      --bg: #ffffff;
-      --fg: #000000;
-      --accent: #28a745;
-      --accent-hover: #218838;
-      --radius: 8px;
-      --gap: 1.5rem;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Work Flow Manager — версия 4.0</title>
 
-    /* Reset & Base */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 16px; scroll-behavior: smooth; }
-    body {
-      background: var(--bg);
-      color: var(--fg);
-      font-family: "Segoe UI", Tahoma, sans-serif;
-      line-height: 1.6;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: var(--gap);
-    }
-    h1, h2 { font-weight: 400; }
-    h1 { font-size: 2.5rem; margin-bottom: var(--gap); }
-    h2 { font-size: 1.5rem; margin-bottom: 0.75rem; }
+<style>
+  :root{
+    --bg:#03122a;
+    --glass-1: rgba(255,255,255,0.04);
+    --glass-2: rgba(255,255,255,0.02);
+    --accent1:#4fc3f7;
+    --accent2:#7b61ff;
+    --text:#e8f7ff;
+    --muted:#9fb7c9;
+    --glass-border: rgba(255,255,255,0.10);
+    --glass-blur: 18px;
+    --card-radius:28px; /* более закруглённые карточки */
+    --gap:20px;
+  }
 
-    /* Layout */
-    .container {
-      width: 100%;
-      max-width: 1024px;
-      display: grid;
-      grid-template-columns: 1fr;
-      grid-gap: var(--gap);
-    }
-    @media (min-width: 768px) {
-      .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
-    }
+  *,*::before,*::after{ box-sizing:border-box; }
 
-    section {
-      background: var(--bg);
-      border: 1px solid var(--fg);
-      border-radius: var(--radius);
-      padding: var(--gap);
-      animation: fadeIn 0.6s ease-out;
-      transition: transform 0.3s;
-    }
-    section:hover { transform: translateY(-4px); }
+  html,body{
+    height:100%; margin:0; padding:0;
+    font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    background:
+      radial-gradient(900px 420px at 8% 12%, rgba(123,97,255,0.08), transparent 10%),
+      radial-gradient(800px 380px at 92% 88%, rgba(79,195,247,0.04), transparent 10%),
+      linear-gradient(180deg, #02102a 0%, var(--bg) 100%);
+    color:var(--text);
+  }
 
-    label, select, input, button, textarea {
-      display: block;
-      width: 100%;
-      font-size: 1rem;
-      margin-top: 0.5rem;
-    }
-    input, select, textarea {
-      padding: 0.6rem;
-      border: 1px solid var(--fg);
-      border-radius: var(--radius);
-      transition: border-color 0.2s;
-    }
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
+  /* Layout */
+  .container{
+    max-width:1220px;
+    margin:28px auto;
+    padding:24px;
+    display:grid;
+    grid-template-columns: 1fr 460px;
+    gap:var(--gap);
+  }
+  @media (max-width:1000px){ .container{ grid-template-columns: 1fr; padding:16px; } }
 
-    button {
-      padding: 0.75rem 1.2rem;
-      border: none;
-      border-radius: var(--radius);
-      background: var(--fg);
-      color: var(--bg);
-      cursor: pointer;
-      transition: background 0.3s, transform 0.1s;
-      font-size: 1rem;
-    }
-    button:hover { background: #222; }
-    button:active { transform: translateY(2px); }
+  /* Liquid glass card */
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:var(--card-radius);
+    border:1px solid var(--glass-border);
+    backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+    box-shadow: 0 14px 50px rgba(2,6,23,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+    overflow:hidden;
+    transition: transform .28s cubic-bezier(.2,.9,.3,1), box-shadow .28s;
+  }
+  .card:hover{ transform: translateY(-8px); box-shadow: 0 28px 80px rgba(2,6,23,0.75); }
 
-    /* Accent send button */
-    #submit-btn {
-      background: var(--accent);
-    }
-    #submit-btn:hover {
-      background: var(--accent-hover);
-    }
+  .card-body{ padding:20px; } /* внутренние отступы чтобы поля не прилегали к краю */
 
-    /* Map - увеличили высоту до 480px */
-    #windy-map {
-      width: 100%;
-      height: 480px;
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-    #windy-map iframe { width: 100%; height: 100%; border: 0; }
+  header{ display:flex; gap:14px; align-items:center; margin-bottom:12px; }
+  .logo{
+    width:64px;height:64px;border-radius:14px;
+    background: linear-gradient(135deg,var(--accent1),var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-weight:800;color:#021;
+    box-shadow: 0 10px 36px rgba(123,97,255,0.14);
+    transform: rotate(-6deg);
+  }
+  h1{ margin:0; font-size:20px; }
+  .subtitle{ color:var(--muted); font-size:13px; margin-top:4px; }
 
-    /* Pomodoro */
-    #timer-display {
-      font-size: 2.2rem;
-      text-align: center;
-      margin-top: 1rem;
-    }
+  /* Left column */
+  .left{ display:flex; flex-direction:column; gap:var(--gap); }
 
-    /* Calculator */
-    .calculator {
-      margin: auto;
-      max-width: 280px;
-    }
-    #calc-display {
-      width: 100%;
-      font-size: 1.4rem;
-      padding: 0.5rem;
-      text-align: right;
-      border-radius: var(--radius);
-      margin-bottom: 0.75rem;
-    }
-    .calc-buttons {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.5rem;
-    }
-    .calc-buttons button {
-      padding: 0.8rem;
-      font-size: 1rem;
-      background: var(--fg);
-      color: var(--bg);
-    }
-    .calc-buttons button:hover { background: #222; }
+  /* Map card */
+  .map-card{ height:420px; display:flex; flex-direction:column; }
+  .map-frame{ flex:1; border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,0.04); }
 
-    /* To-Do */
-    #todo-actions {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-bottom: 1rem;
-    }
-    #todo-filters { margin-top: 0.5rem; }
-    #todo-filters button {
-      margin-right: 0.5rem;
-      background: var(--fg);
-      color: var(--bg);
-      font-size: 0.9rem;
-    }
-    #todo-list {
-      list-style: none;
-      max-height: 240px;
-      overflow-y: auto;
-    }
-    #todo-list li {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #ddd;
-    }
-    #todo-list li.completed {
-      text-decoration: line-through;
-      opacity: 0.6;
-    }
+  /* Pomodoro card */
+  .pom-card{ display:flex; flex-direction:column; gap:12px; }
 
-    /* Footer */
-    footer {
-      margin-top: var(--gap);
-      padding: 1rem 0;
-      text-align: center;
-      font-size: 0.9rem;
-      width: 100%;
-      border-top: 1px solid #ddd;
-    }
+  .pom-row{ display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
 
-    /* Animations */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+  .timer{
+    width:220px;height:220px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background: radial-gradient(circle at 30% 20%, rgba(127,90,255,0.12), transparent 10%), rgba(255,255,255,0.02);
+    border:1px solid rgba(255,255,255,0.04);
+    box-shadow: 0 10px 36px rgba(0,0,0,0.6);
+    position:relative; transition: transform .25s;
+  }
+  .timer.running{ transform: scale(1.04); box-shadow: 0 22px 70px rgba(79,195,247,0.09); }
+  .time-display{ font-size:36px; font-weight:800; color:var(--text); letter-spacing:1px; }
+
+  .controls{ display:flex; flex-direction:column; gap:10px; min-width:260px; }
+
+  .btn{
+    background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border:1px solid rgba(255,255,255,0.06);
+    color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer;
+    transition: transform .12s, box-shadow .12s, background .18s;
+  }
+  .btn:active{ transform: translateY(2px); }
+  .btn.primary{ background: linear-gradient(90deg,var(--accent1),var(--accent2)); color:#021; font-weight:700; box-shadow: 0 10px 30px rgba(123,97,255,0.12); }
+
+  /* Tasks */
+  .tasks-list{ display:flex; flex-direction:column; gap:10px; max-height:260px; overflow:auto; padding-right:6px; }
+  .task{ display:flex; align-items:center; gap:10px; padding:12px; border-radius:12px; background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04); }
+  .task .title{ font-weight:700; color:var(--text); }
+  .task .meta{ font-size:12px; color:var(--muted); margin-left:auto; }
+
+  /* Right column */
+  .right{ display:flex; flex-direction:column; gap:var(--gap); }
+
+  .form-header{ margin-bottom:8px; }
+  .muted{ color:var(--muted); font-size:13px; }
+
+  /* Row system: равные колонки, не выходят за контейнер */
+  .row{
+    display:flex;
+    gap:12px;
+    margin-bottom:12px;
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+  .row .col{
+    flex:1 1 0;
+    min-width:0; /* важно: позволяет корректно сжиматься */
+  }
+  .col--small{ flex:0 0 150px; min-width:120px; }
+
+  label{ display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
+
+  /* Inputs and selects: dark background and readable text */
+  input[type="text"], input[type="date"], input[type="time"], input[type="number"], select, textarea{
+    width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.06);
+    background: linear-gradient(180deg, rgba(0,0,0,0.20), rgba(255,255,255,0.01));
+    color:var(--text); outline:none; font-size:14px;
+    transition: box-shadow .14s, transform .14s;
+    max-width:100%;
+  }
+  input:focus, select:focus, textarea:focus{ box-shadow: 0 10px 36px rgba(79,195,247,0.08); transform: translateY(-3px); }
+
+  /* Select arrow and dark background */
+  select{
+    -webkit-appearance:none; -moz-appearance:none; appearance:none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--text) 50%),
+      linear-gradient(135deg, var(--text) 50%, transparent 50%),
+      linear-gradient(to right, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    background-position: calc(100% - 18px) calc(1em + 2px), calc(100% - 13px) calc(1em + 2px), 0 0;
+    background-size: 6px 6px, 6px 6px, 100% 100%;
+    background-repeat: no-repeat;
+    padding-right:40px;
+  }
+
+  .note{ font-size:12px; color:var(--muted); margin-top:6px; }
+
+  footer{ display:flex; justify-content:space-between; align-items:center; margin-top:8px; color:var(--muted); font-size:13px; }
+
+  /* Animations */
+  @keyframes floaty { 0%{ transform: translateY(0); } 50%{ transform: translateY(-8px); } 100%{ transform: translateY(0); } }
+  .logo{ animation: floaty 6s ease-in-out infinite; }
+
+  @media (max-width:720px){
+    .row{ flex-direction:column; }
+    .col--small{ flex:1 1 0; min-width:0; }
+    .timer{ width:180px; height:180px; margin:0 auto; }
+    .container{ grid-template-columns: 1fr; }
+  }
+
+  /* Safety */
+  form, .card, input, select, textarea { word-break:break-word; overflow-wrap:break-word; }
+
+</style>
 </head>
 <body>
-  <h1>Zentry</h1>
-  <div class="container">
-    <!-- 1. Интерактивная карта -->
-    <section id="windy-section">
-      <h2>Интерактивная карта</h2>
-      <div id="windy-map">
-        <iframe
-          src="https://embed.windy.com/embed2.html?lat=55.7512&lon=37.6184&zoom=5&level=surface&overlay=wind"
-          allowfullscreen>
-        </iframe>
-      </div>
-    </section>
 
-    <!-- 2. Базовые поля -->
-    <section class="two-col">
-      <div>
-        <h2>Выполняет работу</h2>
-        <label>
-          Ваше имя
-          <input type="text" id="name" placeholder="Введите имя">
-        </label>
-      </div>
-      <div>
-        <h2>Устройство</h2>
-        <label>
-          Выберите устройство
-          <select id="device">
-            <option>Смартфон</option>
-            <option>Планшет</option>
-            <option>Компьютер</option>
-          </select>
-        </label>
-      </div>
-    </section>
+<div class="container">
+  <!-- LEFT COLUMN -->
+  <div class="left">
+    <!-- Карточка с картой Windy -->
+    <div class="card">
+      <div class="card-body">
+        <header>
+          <div class="logo">WFM</div>
+          <div>
+            <h1>Work Flow Manager</h1>
+            <div class="subtitle"><strong></strong></div>
+          </div>
+        </header>
 
-    <!-- 3. Pomodoro Timer -->
-    <section>
-      <h2>Timer Pomodoro</h2>
-      <div class="two-col">
-        <label>
-          Длительность
-          <select id="pomodoro-duration">
-            <option value="300">5 мин</option>
-            <option value="600">10 мин</option>
-            <option value="900">15 мин</option>
-            <option value="1200">20 мин</option>
-            <option value="1500">25 мин</option>
-            <option value="1800">30 мин</option>
-          </select>
-        </label>
-        <button id="start-timer">Старт</button>
-      </div>
-      <div id="timer-display">00:00</div>
-    </section>
-
-    <!-- 4. Калькулятор -->
-    <section>
-      <h2>Калькулятор</h2>
-      <div class="calculator">
-        <input type="text" id="calc-display" disabled>
-        <div class="calc-buttons">
-          <button data-val="7">7</button>
-          <button data-val="8">8</button>
-          <button data-val="9">9</button>
-          <button data-op="/">÷</button>
-          <button data-val="4">4</button>
-          <button data-val="5">5</button>
-          <button data-val="6">6</button>
-          <button data-op="*">×</button>
-          <button data-val="1">1</button>
-          <button data-val="2">2</button>
-          <button data-val="3">3</button>
-          <button data-op="-">−</button>
-          <button data-val="0">0</button>
-          <button id="clear">C</button>
-          <button id="equals">=</button>
-          <button data-op="+">+</button>
+        <div class="map-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div><strong>Интерактивная карта Windy</strong><div class="muted"></div></div>
+            <div class="muted">Обновляется автоматически</div>
+          </div>
+          <div class="map-frame" id="windy-container" aria-hidden="false">
+            <iframe
+              title="Windy map"
+              src="https://embed.windy.com/embed2.html?lat=53.9&lon=27.5667&detailLat=53.9&detailLon=27.5667&width=100%&height=100%&zoom=8&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=kt"
+              style="width:100%;height:100%;border:0;"
+              allowfullscreen
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- 5. To-Do список -->
-    <section>
-      <h2>Задачи</h2>
-      <div id="todo-actions">
-        <input type="text" id="todo-input" placeholder="Новая задача">
-        <input type="date" id="todo-deadline">
-        <button id="add-todo">Добавить</button>
-      </div>
-      <div id="todo-filters">
-        <button data-filter="all">Все</button>
-        <button data-filter="today">Сегодня</button>
-        <button data-filter="in-progress">В процессе</button>
-        <button data-filter="completed">Завершено</button>
-      </div>
-      <ul id="todo-list"></ul>
-    </section>
+    <!-- Отдельная карточка с Pomodoro и задачами -->
+    <div class="card">
+      <div class="card-body pom-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div><strong>Pomodoro таймер</strong><div class="muted">Фокус и отдых</div></div>
+          <div class="muted"></div>
+        </div>
 
-    <!-- 6. Бланк наблюдений -->
-    <section>
-      <h2>Бланк наблюдений</h2>
-      <form id="obs-form"
-            action="https://formsubmit.co/ajax/communityofdevelopingcraftsmen@gmail.com"
-            method="POST">
-        <input type="hidden" name="_captcha" value="false">
-        <div class="two-col">
-          <label>
-            Время
-            <input type="time" name="time" required>
-          </label>
-          <label>
-            Микрорайон
-            <input type="text" name="micro" required>
-          </label>
+        <div class="pom-row">
+          <div class="timer" id="timerCircle" role="timer" aria-live="polite">
+            <div class="time-display" id="timeDisplay">25:00</div>
+          </div>
+
+          <div class="controls">
+            <div style="display:flex;gap:8px;">
+              <button class="btn primary" id="startBtn">Старт</button>
+              <button class="btn" id="pauseBtn">Пауза</button>
+              <button class="btn" id="resetBtn">Сброс</button>
+            </div>
+
+            <div style="display:flex;gap:8px;">
+              <label style="flex:1;">
+                <div class="muted">Длительность (мин)</div>
+                <input type="number" id="pomMinutes" value="25" min="1" max="120" />
+              </label>
+              <label style="width:120px;">
+                <div class="muted">Перерыв (мин)</div>
+                <input type="number" id="breakMinutes" value="5" min="1" max="60" />
+              </label>
+            </div>
+
+            <div class="muted"></div>
+          </div>
         </div>
-        <div class="two-col">
-          <label>
-            Температура
-            <input type="number" name="temp" required>
-          </label>
-          <label>
-            Влажность
-            <input type="number" name="humidity" required>
-          </label>
-        </div>
-        <div class="two-col">
-          <label>
-            Погода
-            <select name="weather" required>
-              <option>Ясно</option>
-              <option>Засуха</option>
-              <option>Туман</option>
-              <option>Облачно</option>
-              <option>Пасмурно</option>
-              <option>Дождь</option>
-              <option>Гроза</option>
-              <option>Град</option>
-              <option>Снег</option>
+
+        <hr style="border:none;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.03),transparent);margin:12px 0;">
+
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div><strong>Задачи и логика</strong><div class="muted">Добавляйте задачи, ставьте приоритет и зависимости</div></div>
+            <div class="muted">Подсказка: выберите следующую задачу</div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+            <input id="taskTitle" type="text" placeholder="Название задачи" style="flex:1;min-width:160px;border-radius:12px;padding:10px 12px;" />
+            <select id="taskPriority" style="width:160px;border-radius:12px;padding:10px 12px;">
+              <option value="low">Низкий</option>
+              <option value="medium" selected>Средний</option>
+              <option value="high">Высокий</option>
+              <option value="urgent">Срочно</option>
             </select>
-          </label>
-          <label>
-            Ветер
-            <select name="wind" required>
-              <option>Нейтральный</option>
-              <option>Слабый</option>
-              <option>Лёгкий</option>
-              <option>Умеренный</option>
-              <option>Свежий ветер</option>
-              <option>Сильный</option>
-              <option>Шторм</option>
-              <option>Ураган</option>
-            </select>
-          </label>
+            <button class="btn" id="addTaskBtn">Добавить</button>
+          </div>
+
+          <div class="tasks-list" id="tasksList" aria-live="polite"></div>
+
+          <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
+            <button class="btn" id="suggestBtn">Предложить следующую задачу</button>
+            <div class="muted" id="suggestion"></div>
+          </div>
         </div>
-        <label>
-          Kt
-          <input type="number" name="kt" required>
-        </label>
-        <label>
-          Комментарий
-          <textarea name="comment" rows="3"></textarea>
-        </label>
-        <button type="submit" id="submit-btn">Отправить</button>
-        <div id="submit-message"></div>
-      </form>
-    </section>
+      </div>
+    </div>
   </div>
 
-  <footer>© 2025 Zentry</footer>
+  <!-- RIGHT COLUMN -->
+  <div class="right">
+    <div class="card">
+      <div class="card-body">
+        <div class="form-header">
+          <strong>Бланк наблюдений</strong>
+          <div class="muted">Заполните поля и отправьте</div>
+        </div>
 
-  <script>
-    // Pomodoro Timer
-    (function() {
-      const display = document.getElementById('timer-display');
-      const startBtn = document.getElementById('start-timer');
-      const select = document.getElementById('pomodoro-duration');
-      let interval;
-      startBtn.addEventListener('click', () => {
-        clearInterval(interval);
-        let secs = +select.value;
-        const end = Date.now() + secs * 1000;
-        function update() {
-          let remain = Math.max(0, Math.floor((end - Date.now())/1000));
-          const m = String(Math.floor(remain/60)).padStart(2,'0');
-          const s = String(remain%60).padStart(2,'0');
-          display.textContent = remain>0 ? `${m}:${s}` : 'Время вышло, отдыхайте.';
-          if(remain<=0) clearInterval(interval);
-        }
-        update();
-        interval = setInterval(update, 500);
-      });
-    })();
+        <form id="obsForm" action="https://formsubmit.co/communityofdevelopingcraftsmen@gmail.com" method="POST" target="_blank" novalidate>
+          <input type="hidden" name="_captcha" value="false" />
+          <input type="hidden" name="_subject" value="Work Flow Manager — заполненный бланк" />
 
-    // Calculator
-    (function(){
-      const disp = document.getElementById('calc-display');
-      let expr = '';
-      document.querySelectorAll('.calc-buttons button').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const v = btn.dataset.val, op = btn.dataset.op;
-          if (v!=null) expr += v;
-          if (op) expr += op;
-          disp.value = expr;
-        });
-      });
-      document.getElementById('clear').onclick = () => { expr=''; disp.value=''; };
-      document.getElementById('equals').onclick = () => {
-        try { expr = String(eval(expr)); disp.value = expr; }
-        catch { disp.value='Ошибка'; expr=''; }
-      };
-    })();
+          <!-- Дата и Время в одной строке -->
+          <div class="row">
+            <div class="col col--small">
+              <label for="dateField">Дата</label>
+              <input id="dateField" name="Дата" type="date" required />
+            </div>
+            <div class="col col--small">
+              <label for="timeField">Время</label>
+              <input id="timeField" name="Время" type="time" required />
+            </div>
+          </div>
 
-    // To-Do List
-    (function(){
-      const input = document.getElementById('todo-input');
-      const dateIn = document.getElementById('todo-deadline');
-      const addBtn = document.getElementById('add-todo');
-      const listEl = document.getElementById('todo-list');
-      const filters = document.querySelectorAll('#todo-filters button');
-      let todos = [], filter = 'all';
-      addBtn.onclick = () => {
-        const text = input.value.trim(), deadline = dateIn.value;
-        if(!text||!deadline) return;
-        todos.push({ id:Date.now(), text, deadline, done:false });
-        input.value=''; dateIn.value='';
-        render();
-      };
-      filters.forEach(f => {
-        f.onclick = () => { filter = f.dataset.filter; render(); };
-      });
-      function render(){
-        listEl.innerHTML = '';
-        const today = new Date().toISOString().slice(0,10);
-        todos.filter(t => {
-          if(filter==='today') return t.deadline===today&&!t.done;
-          if(filter==='in-progress') return !t.done && t.deadline>today;
-          if(filter==='completed') return t.done;
-          return true;
-        }).forEach(t => {
-          const li = document.createElement('li');
-          if(t.done) li.classList.add('completed');
-          const chk = document.createElement('input');
-          chk.type='checkbox'; chk.checked=t.done;
-          chk.onchange = () => { t.done = chk.checked; render(); };
-          const txt = document.createElement('span');
-          txt.textContent = `${t.text} (до ${t.deadline})`;
-          li.append(chk, txt);
-          listEl.append(li);
-        });
-      }
-    })();
+          <!-- Микрорайон на отдельной строке -->
+          <div class="row">
+            <div class="col">
+              <label for="micro">Микрорайон</label>
+              <input id="micro" name="Микрорайон" type="text" placeholder="Введите микрорайон" required />
+            </div>
+          </div>
 
-    // Observation Form
-    (function(){
-      const form = document.getElementById('obs-form');
-      const msg  = document.getElementById('submit-message');
-      form.addEventListener('submit', e => {
+          <!-- Температура и Влажность -->
+          <div class="row">
+            <div class="col">
+              <label for="temp">Температура</label>
+              <input id="temp" name="Температура" type="text" placeholder="+5.2" inputmode="numeric" pattern="^[0-9:+\\-;.,\\s]+$" required />
+              <div class="note"></div>
+            </div>
+            <div class="col">
+              <label for="hum">Влажность</label>
+              <input id="hum" name="Влажность" type="text" placeholder="45" inputmode="numeric" pattern="^[0-9:+\\-;.,\\s]+$" required />
+            </div>
+          </div>
+
+          <!-- Погода и Ветер -->
+          <div class="row">
+            <div class="col">
+              <label for="weather">Погода</label>
+              <select id="weather" name="Погода" required>
+                <option value="">Выберите...</option>
+                <option>Ясно</option>
+                <option>Засуха</option>
+                <option>Туман</option>
+                <option>Облачно</option>
+                <option>Пасмурно</option>
+                <option>Дождь</option>
+                <option>Гроза</option>
+                <option>Град</option>
+                <option>Снег</option>
+              </select>
+            </div>
+            <div class="col">
+              <label for="wind">Ветер</label>
+              <select id="wind" name="Ветер" required>
+                <option value="">Выберите...</option>
+                <option>Нейтральный</option>
+                <option>Слабый</option>
+                <option>Легкий</option>
+                <option>Умеренный</option>
+                <option>Свежий ветер</option>
+                <option>Сильный ветер</option>
+                <option>Шторм</option>
+                <option>Ураган</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Kt -->
+          <div class="row">
+            <div class="col">
+              <label for="kt">Kt</label>
+              <input id="kt" name="Kt" type="text" placeholder="+3.2" inputmode="numeric" pattern="^[0-9:+\\-;.,\\s]+$" required />
+            </div>
+          </div>
+
+          <!-- Исполнитель и устройство -->
+          <div class="row">
+            <div class="col">
+              <label for="executor">Выполняет работу</label>
+              <input id="executor" name="Выполняет работу" type="text" placeholder="Ваше имя" required />
+            </div>
+            <div class="col">
+              <label for="device">Устройство</label>
+              <select id="device" name="Устройство" required>
+                <option value="">Выберите...</option>
+                <option>Смартфон</option>
+                <option>Планшет</option>
+                <option>Компьютер</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;align-items:center;margin-top:8px;">
+            <button class="btn primary" type="submit" id="submitBtn">Отправить</button>
+            <div class="muted"></div>
+          </div>
+
+          <div class="note"></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div><strong>Настройки</strong><div class="muted">Тема и поведение</div></div>
+          <div class="muted">v4.0</div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <label class="muted">Тёмная тема</label>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="btn" id="keepDark">Оставить тёмную</button>
+            <button class="btn" id="resetAll">Сброс задач</button>
+          </div>
+          <div class="muted" style="margin-top:10px;">Оптимизировано для телефонов и iPhone.</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div>Work Flow Manager</div>
+      <div>Версия <strong>4.0</strong></div>
+    </footer>
+  </div>
+</div>
+
+<script>
+  // Автозаполнение даты и времени
+  (function fillDateTime(){
+    const dateField = document.getElementById('dateField');
+    const timeField = document.getElementById('timeField');
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth()+1).padStart(2,'0');
+    const d = String(now.getDate()).padStart(2,'0');
+    dateField.value = y + '-' + m + '-' + d;
+    const hh = String(now.getHours()).padStart(2,'0');
+    const mm = String(now.getMinutes()).padStart(2,'0');
+    timeField.value = hh + ':' + mm;
+  })();
+
+  // Очистка полей temp/hum/kt
+  function sanitizeValue(v){ return v.replace(/[^0-9:+\\-;.,\\s]/g, ''); }
+  ['temp','hum','kt'].forEach(id=>{
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', (e)=>{
+      const clean = sanitizeValue(e.target.value);
+      if (clean !== e.target.value) e.target.value = clean;
+    });
+  });
+
+  // Валидация и отправка формы (FormSubmit)
+  const obsForm = document.getElementById('obsForm');
+  obsForm.addEventListener('submit', function(e){
+    const requiredFields = obsForm.querySelectorAll('[required]');
+    for (let f of requiredFields){
+      if (!f.value || String(f.value).trim() === ''){
         e.preventDefault();
-        const data = new FormData(form);
-        fetch(form.action, {
-          method:'POST',
-          body:data,
-          headers:{ 'Accept':'application/json'}
-        })
-        .then(res => {
-          if(res.ok){
-            form.reset();
-            msg.textContent = 'Отправлено 😊';
-          } else {
-            msg.textContent = 'Ошибка отправки';
-          }
-          setTimeout(()=> msg.textContent='', 4000);
-        })
-        .catch(() => {
-          msg.textContent = 'Ошибка сети';
-          setTimeout(()=> msg.textContent='', 4000);
-        });
+        alert('Пожалуйста, заполните все обязательные поля.');
+        f.focus();
+        return false;
+      }
+    }
+    const checks = ['temp','hum','kt'];
+    for (let id of checks){
+      const el = document.getElementById(id);
+      if (el && !/^[0-9:+\\-;.,\\s]+$/.test(el.value)){
+        e.preventDefault();
+        alert('Поле "' + (el.previousElementSibling ? el.previousElementSibling.innerText : id) + '" содержит недопустимые символы.');
+        el.focus();
+        return false;
+      }
+    }
+    const btn = document.getElementById('submitBtn');
+    if (btn.dataset.sending === '1'){ e.preventDefault(); return false; }
+    btn.dataset.sending = '1';
+    btn.innerText = 'Отправка...';
+    setTimeout(()=>{ btn.dataset.sending = '0'; btn.innerText = 'Отправить'; }, 4000);
+  });
+
+  // Pomodoro
+  (function pomodoro(){
+    let timerSeconds = 25*60;
+    let running = false;
+    let interval = null;
+    const display = document.getElementById('timeDisplay');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const pomMinutes = document.getElementById('pomMinutes');
+    const breakMinutes = document.getElementById('breakMinutes');
+    const timerCircle = document.getElementById('timerCircle');
+
+    function format(s){ const mm = String(Math.floor(s/60)).padStart(2,'0'); const ss = String(s%60).padStart(2,'0'); return mm + ':' + ss; }
+    function updateDisplay(){ display.textContent = format(timerSeconds); if (running) timerCircle.classList.add('running'); else timerCircle.classList.remove('running'); }
+
+    function start(){
+      if (running) return;
+      running = true;
+      interval = setInterval(()=>{
+        if (timerSeconds > 0){ timerSeconds--; updateDisplay(); } else {
+          clearInterval(interval); running = false; updateDisplay();
+          try { new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg').play(); } catch(e){}
+          alert('Время истекло!');
+          timerSeconds = parseInt(breakMinutes.value || 5,10)*60;
+        }
+      },1000);
+      updateDisplay();
+    }
+    function pause(){ running = false; clearInterval(interval); updateDisplay(); }
+    function reset(){ running = false; clearInterval(interval); timerSeconds = parseInt(pomMinutes.value || 25,10)*60; updateDisplay(); }
+
+    timerSeconds = parseInt(pomMinutes.value || 25,10)*60;
+    updateDisplay();
+    startBtn.addEventListener('click', start);
+    pauseBtn.addEventListener('click', pause);
+    resetBtn.addEventListener('click', reset);
+    if (pomMinutes) pomMinutes.addEventListener('change', ()=>{ if (!running){ timerSeconds = parseInt(pomMinutes.value || 25,10)*60; updateDisplay(); } });
+  })();
+
+  // Задачи с логикой
+  (function tasksModule(){
+    const tasks = [];
+    const tasksList = document.getElementById('tasksList');
+    const addBtn = document.getElementById('addTaskBtn');
+    const titleInput = document.getElementById('taskTitle');
+    const prioritySelect = document.getElementById('taskPriority');
+    const suggestBtn = document.getElementById('suggestBtn');
+    const suggestion = document.getElementById('suggestion');
+
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+
+    function render(){
+      tasksList.innerHTML = '';
+      tasks.forEach(t=>{
+        const el = document.createElement('div');
+        el.className = 'task';
+        el.dataset.id = t.id;
+        el.innerHTML = `
+          <input type="checkbox" ${t.done ? 'checked' : ''} style="width:18px;height:18px;" />
+          <div style="display:flex;flex-direction:column;">
+            <div class="title">${escapeHtml(t.title)}</div>
+            <div class="muted" style="font-size:12px;">Приоритет: ${t.priority}${t.dependsTitle ? ' • Зависит от: ' + escapeHtml(t.dependsTitle) : ''}</div>
+          </div>
+          <div class="meta">
+            <button class="btn" data-action="del" style="padding:6px 8px;">Удалить</button>
+          </div>
+        `;
+        el.querySelector('input[type="checkbox"]').addEventListener('change', (e)=>{ t.done = e.target.checked; render(); });
+        el.querySelector('button[data-action="del"]').addEventListener('click', ()=>{ const idx = tasks.findIndex(x=>x.id===t.id); if (idx>=0) tasks.splice(idx,1); render(); });
+        tasksList.appendChild(el);
       });
-    })();
-  </script>
+    }
+
+    addBtn.addEventListener('click', ()=>{
+      const title = titleInput.value.trim();
+      if (!title){ alert('Введите название задачи'); titleInput.focus(); return; }
+      const id = 't' + Date.now();
+      const priority = prioritySelect.value;
+      let depends = null, dependsTitle = '';
+      if (tasks.length>0){
+        const last = tasks.slice().reverse().find(x=>!x.done);
+        if (last){ depends = last.id; dependsTitle = last.title; }
+      }
+      tasks.push({id,title,priority,done:false,depends,dependsTitle});
+      titleInput.value = '';
+      render();
+    });
+
+    suggestBtn.addEventListener('click', ()=>{
+      const pending = tasks.filter(t=>!t.done);
+      if (pending.length===0){ suggestion.textContent = 'Нет незавершённых задач'; return; }
+      const available = pending.filter(t=>{ if (!t.depends) return true; const dep = tasks.find(x=>x.id===t.depends); return dep ? dep.done : true; });
+      if (available.length===0){ suggestion.textContent = 'Нет доступных задач (зависимости не выполнены)'; return; }
+      const order = {urgent:4, high:3, medium:2, low:1};
+      available.sort((a,b)=> (order[b.priority]||0) - (order[a.priority]||0));
+      const pick = available[0];
+      suggestion.textContent = 'Следующая: ' + pick.title + ' (приоритет: ' + pick.priority + ')';
+    });
+
+    // Примеры
+    tasks.push({id:'t0',title:'Проверить карту Windy',priority:'medium',done:false,depends:null,dependsTitle:''});
+    tasks.push({id:'t1',title:'Заполнить бланк наблюдений',priority:'high',done:false,depends:null,dependsTitle:''});
+    render();
+  })();
+
+  // Настройки
+  document.getElementById('keepDark').addEventListener('click', ()=>{ alert('Тёмная тема активна. Переключатель можно расширить при необходимости.'); });
+  document.getElementById('resetAll').addEventListener('click', ()=>{
+    if (!confirm('Сбросить локальные данные (задачи)?')) return;
+    location.reload();
+  });
+
+  // Защита от ошибок
+  window.addEventListener('error', function(e){ console.error('UI error:', e.message); });
+
+  // Предотвращение двойной отправки форм
+  (function preventDoubleSubmit(){
+    const forms = document.querySelectorAll('form');
+    forms.forEach(f=>{
+      f.addEventListener('submit', function(e){
+        const btn = f.querySelector('button[type="submit"]');
+        if (btn && btn.dataset.submitted === 'true'){ e.preventDefault(); return false; }
+        if (btn) btn.dataset.submitted = 'true';
+        setTimeout(()=>{ if (btn) btn.dataset.submitted = 'false'; }, 4000);
+      });
+    });
+  })();
+
+</script>
 </body>
 </html>
