@@ -4,365 +4,377 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Work Flow Manager</title>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Базовые стили и переменные */
+        /* Scandi-Chic, Soft Minimalism & Super-Rounded Palette */
         :root {
-            --primary: #1e293b;
-            --secondary: #3b82f6;
-            --accent: #f59e0b;
-            --bg-body: #f1f5f9;
+            --bg-main: #fcfbf9;
             --bg-card: #ffffff;
-            --text-main: #334155;
-            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-            --border-drawn: 255px 15px 225px 15px/15px 225px 15px 255px;
-            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --text-main: #4a4a4a;
+            --text-muted: #8c8c8c;
+            --accent-craft: #d4c5b9;
+            --accent-hover: #c4b3a5;
+            --success: #a3b18a;
+            --danger: #e07a5f;
+            --warning: #f4a261;
+            
+            /* НОВЫЕ СИММЕТРИЧНЫЕ И БОЛЬШИЕ СКРУГЛЕНИЯ */
+            --r-large: 40px;   /* Для секций, карты */
+            --r-medium: 25px;  /* Для задач */
+            --r-pill: 50px;    /* Для кнопок, инпутов (форма капсулы) */
+            
+            --shadow-soft: 0 10px 30px rgba(149, 157, 165, 0.06);
+            --transition-micro: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Более "живая" анимация */
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Quicksand', sans-serif;
+            color: var(--text-main);
         }
 
         body {
-            background-color: var(--bg-body);
-            color: var(--text-main);
+            background-color: var(--bg-main);
+            background-image: radial-gradient(#e6e4df 1px, transparent 1px);
+            background-size: 30px 30px;
             line-height: 1.6;
             overflow-x: hidden;
+            padding-bottom: 40px;
         }
 
-        /* Анимации появления */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Шапка сайта */
+        /* Шапка */
         header {
-            background: linear-gradient(135deg, var(--primary), #0f172a);
-            color: white;
-            padding: 20px 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            padding: 40px 5% 30px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         .logo-container {
             display: flex;
-            align-items: center;
-            gap: 15px;
+            align-items: baseline;
+            gap: 12px;
         }
 
         .logo-wf {
             font-family: 'Caveat', cursive;
-            font-size: 2.5rem;
-            color: var(--accent);
-            border: 2px solid var(--accent);
-            border-radius: var(--border-drawn);
-            padding: 5px 15px;
+            font-size: 3rem;
+            color: var(--text-main);
+            border: 3px solid var(--accent-craft);
+            /* Симметричное скругление */
+            border-radius: var(--r-large);
+            padding: 8px 25px;
             transform: rotate(-3deg);
-            transition: var(--transition);
+            transition: var(--transition-micro);
+            background: var(--bg-card);
+            box-shadow: 2px 4px 0px rgba(212, 197, 185, 0.2);
         }
 
         .logo-wf:hover {
             transform: rotate(0deg) scale(1.05);
-            box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+            box-shadow: 0 10px 20px rgba(212, 197, 185, 0.4);
         }
 
         .logo-text {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 700;
             letter-spacing: 1px;
-            text-transform: uppercase;
+            text-transform: lowercase;
+            color: var(--text-muted);
         }
 
         .version {
-            background: rgba(255, 255, 255, 0.1);
+            font-family: 'Caveat', cursive;
+            font-size: 1.6rem;
+            color: var(--warning);
+            transform: rotate(2deg);
+            background: rgba(244, 162, 97, 0.1);
             padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: var(--r-pill);
         }
 
-        /* Основная сетка */
+        /* Сетка секций */
         main {
-            padding: 40px 5%;
+            padding: 0 5%;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            max-width: 1400px;
+            gap: 40px;
+            max-width: 1800px;
             margin: 0 auto;
         }
 
         section {
             background: var(--bg-card);
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: var(--shadow);
-            border-top: 5px solid var(--secondary);
-            animation: fadeInUp 0.8s ease backwards;
-            transition: var(--transition);
+            /* Скругление секций */
+            border-radius: var(--r-large);
+            padding: 40px;
+            box-shadow: var(--shadow-soft);
+            border: 2px solid transparent;
+            transition: var(--transition-micro);
         }
 
         section:hover {
+            border-color: #f1ede9;
             transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 15px 40px rgba(149, 157, 165, 0.1);
         }
 
-        section:nth-child(1) { animation-delay: 0.1s; grid-column: 1 / -1; }
-        section:nth-child(2) { animation-delay: 0.2s; }
-        section:nth-child(3) { animation-delay: 0.3s; }
-        section:nth-child(4) { animation-delay: 0.4s; grid-column: 1 / -1; }
+        section:nth-child(1), section:nth-child(4) { grid-column: 1 / -1; }
 
         h2 {
-            font-size: 1.5rem;
-            color: var(--primary);
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 10px;
-            display: flex;
-            align-items: center;
+            font-family: 'Caveat', cursive;
+            font-size: 2.4rem;
+            margin-bottom: 30px;
+            position: relative;
+            display: inline-block;
         }
 
-        /* Карта Windy */
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 7px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: var(--accent-craft);
+            opacity: 0.3;
+            border-radius: var(--r-pill);
+        }
+
+        /* Интерактивные элементы (Микровзаимодействия) */
+        button, input, select {
+            outline: none;
+            transition: var(--transition-micro);
+        }
+
+        input, select {
+            padding: 15px 25px;
+            border: 2px solid #f1f1f8;
+            /* Форма капсулы */
+            border-radius: var(--r-pill);
+            background: var(--bg-main);
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent-craft);
+            background: var(--bg-card);
+            box-shadow: 0 5px 15px rgba(212, 197, 185, 0.2);
+        }
+
+        button {
+            background: var(--bg-card);
+            border: 2px solid var(--accent-craft);
+            color: var(--text-main);
+            padding: 12px 28px;
+            /* Форма капсулы */
+            border-radius: var(--r-pill);
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        button:hover {
+            background: var(--accent-craft);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(212, 197, 185, 0.4);
+        }
+
+        button:active { transform: scale(0.97); }
+
+        /* Специфичные кнопки */
+        button.btn-danger { border-color: var(--danger); color: var(--danger); }
+        button.btn-danger:hover { background: var(--danger); color: white; border-color: var(--danger); }
+        
+        button.btn-success { border-color: var(--success); color: var(--success); }
+        button.btn-success:hover { background: var(--success); color: white; border-color: var(--success); }
+        
+        button.btn-edit { border-color: var(--warning); color: var(--warning); }
+        button.btn-edit:hover { background: var(--warning); color: white; border-color: var(--warning); }
+
+        /* Метеокарта */
         .map-container {
-            border-radius: 12px;
+            border-radius: calc(var(--r-large) - 5px);
             overflow: hidden;
-            border: 2px solid #cbd5e1;
+            border: 3px solid var(--accent-craft);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.05);
         }
 
-        /* Таймер Pomodoro */
+        /* Таймер */
         .pomodoro-settings {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 15px;
+            margin-bottom: 25px;
+            background: var(--bg-main);
+            padding: 15px;
+            border-radius: var(--r-pill);
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
         }
-        
+
         .pomodoro-settings input {
-            width: 80px;
+            width: 100px;
             text-align: center;
-            font-weight: bold;
+            font-family: 'Caveat', cursive;
+            font-size: 1.8rem;
+            padding: 8px;
+            border-color: #e6e6ee;
         }
 
         .pomodoro-display {
-            font-size: 4rem;
-            font-weight: 700;
+            font-size: 6rem;
+            font-weight: 300;
             text-align: center;
-            color: var(--primary);
-            margin: 10px 0 20px;
-            font-family: monospace;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin: 10px 0 35px;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-main);
+            letter-spacing: -3px;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.03);
         }
 
-        .btn-group {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        button {
-            background: var(--secondary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            outline: none;
-        }
-
-        button:hover {
-            background: #2563eb;
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
-        }
-
-        button.btn-danger { background: #ef4444; }
-        button.btn-danger:hover { background: #dc2626; box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4); }
-        
-        button.btn-success { background: #10b981; }
-        button.btn-success:hover { background: #059669; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4); }
-
-        button.btn-edit { background: #f59e0b; }
-        button.btn-edit:hover { background: #d97706; box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4); }
+        .btn-group { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
 
         /* Задачи */
         .task-controls {
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1fr auto;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        input, select {
-            padding: 10px 15px;
-            border: 2px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: var(--transition);
-            width: 100%;
-            background: #f8fafc;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--secondary);
-            background: white;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            gap: 15px;
+            margin-bottom: 35px;
+            background: var(--bg-main);
+            padding: 20px;
+            border-radius: var(--r-medium);
         }
 
         .task-list {
             list-style: none;
-            max-height: 350px;
+            max-height: 450px;
             overflow-y: auto;
-            padding-right: 5px;
+            padding-right: 15px;
         }
 
         .task-item {
-            background: #f8fafc;
-            border-left: 4px solid var(--secondary);
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 6px;
+            background: var(--bg-main);
+            border: 2px solid #f1f1f8;
+            padding: 25px;
+            margin-bottom: 15px;
+            /* Скругление задач */
+            border-radius: var(--r-medium);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            animation: fadeInUp 0.4s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: var(--transition);
-            gap: 15px;
+            gap: 20px;
+            transition: var(--transition-micro);
         }
 
         .task-item:hover {
-            background: white;
-            transform: translateX(5px);
+            transform: translateX(10px);
+            background: var(--bg-card);
+            box-shadow: var(--shadow-soft);
+            border-color: transparent;
         }
 
-        .task-priority-high { border-left-color: #ef4444; }
-        .task-priority-medium { border-left-color: #f59e0b; }
-        .task-priority-low { border-left-color: #10b981; }
+        .task-priority-high { border-left: 6px solid var(--danger); }
+        .task-priority-medium { border-left: 6px solid var(--warning); }
+        .task-priority-low { border-left: 6px solid var(--success); }
+
+        .task-info { flex-grow: 1; }
+        .task-title { font-weight: 600; font-size: 1.2rem; margin-bottom: 8px; transition: var(--transition-micro); }
+        .task-meta { font-size: 0.9rem; color: var(--text-muted); background: #eee; display: inline-block; padding: 3px 10px; border-radius: var(--r-pill); }
 
         .task-completed {
-            opacity: 0.6;
-            background: #e2e8f0;
-            border-left-color: #94a3b8 !important;
+            opacity: 0.5;
+            background: #f8f8f8 !important;
+            border-color: #eee !important;
+            transform: scale(0.98);
         }
+        .task-completed .task-title { text-decoration: line-through; color: var(--text-muted); }
+        .task-completed .task-meta { background: #e0e0e0; }
+        .task-completed:hover { transform: scale(0.98); }
 
-        .task-completed .task-title {
-            text-decoration: line-through;
-            color: #64748b;
-        }
+        .task-actions { display: flex; gap: 10px; }
+        .task-actions button { padding: 0; font-size: 1.1rem; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; }
 
-        .task-info {
-            flex-grow: 1;
-        }
-
-        .task-title {
-            font-weight: bold;
-            font-size: 1.1rem;
-            margin-bottom: 4px;
-        }
-
-        .task-meta {
-            font-size: 0.8rem;
-            color: #64748b;
-        }
-
-        .task-actions {
-            display: flex;
-            gap: 5px;
-        }
-
-        .task-actions button {
-            padding: 6px 10px;
-            font-size: 0.8rem;
-        }
-
-        /* Бланк наблюдений (В СТОЛБИК) */
+        /* Форма наблюдений (Столбик) */
         .form-column {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            max-width: 600px; /* Ограничиваем ширину, чтобы не растягивалось на весь экран */
-            margin: 0 auto; /* Центрируем форму */
+            gap: 25px;
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--bg-main);
+            padding: 30px;
+            border-radius: var(--r-large);
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
+        .form-group { display: flex; flex-direction: column; gap: 10px; }
         .form-group label {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--primary);
+            font-family: 'Caveat', cursive;
+            font-size: 1.6rem;
+            color: var(--text-main);
+            margin-left: 15px;
         }
 
         .form-group input[readonly] {
-            background: #e2e8f0;
-            cursor: not-allowed;
-            color: #475569;
-            font-weight: bold;
+            background: transparent;
+            border: none;
+            border-bottom: 3px dashed var(--accent-craft);
+            border-radius: 0;
+            color: var(--text-muted);
+            font-family: 'Caveat', cursive;
+            font-size: 1.4rem;
+            padding-left: 15px;
+            font-weight: 700;
         }
 
         .submit-btn {
-            margin-top: 15px;
-            background: var(--accent);
-            color: var(--primary);
-            font-size: 1.1rem;
-            padding: 15px;
-            border-radius: var(--border-drawn);
-            border: 2px solid var(--primary);
+            margin-top: 25px;
+            background: var(--text-main);
+            color: var(--bg-card);
+            font-size: 1.2rem;
+            padding: 18px;
             width: 100%;
+            border-color: var(--text-main);
         }
+        .submit-btn:hover { background: #666; color: white; border-color: #666; }
 
-        .submit-btn:hover {
-            background: #d97706;
-            color: white;
-        }
-
-        /* Подвал */
         footer {
-            background: var(--primary);
-            color: white;
             text-align: center;
-            padding: 20px;
-            margin-top: 40px;
-            font-size: 0.9rem;
+            padding: 50px 20px 10px;
+            font-family: 'Caveat', cursive;
+            font-size: 1.4rem;
+            color: var(--text-muted);
         }
 
-        /* Скроллбар */
+        /* Кастомный скроллбар */
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--accent-craft); border-radius: var(--r-pill); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-hover); }
 
-        /* Адаптивность для телефонов */
-        @media (max-width: 1024px) {
+        /* Адаптивность */
+        @media (max-width: 1100px) {
             .task-controls { grid-template-columns: 1fr 1fr; }
             .task-controls button { grid-column: 1 / -1; }
         }
-        
         @media (max-width: 768px) {
-            main { grid-template-columns: 1fr; }
-            .task-controls { grid-template-columns: 1fr; }
-            header { flex-direction: column; gap: 15px; text-align: center; }
-            .pomodoro-display { font-size: 3rem; }
-            .task-item { flex-direction: column; align-items: flex-start; }
-            .task-actions { width: 100%; justify-content: space-between; margin-top: 10px; }
-            .form-column { max-width: 100%; }
+            main { grid-template-columns: 1fr; gap: 30px; }
+            section { padding: 30px; }
+            .task-controls { grid-template-columns: 1fr; padding: 15px; }
+            header { flex-direction: column; text-align: center; gap: 20px; padding-top: 20px; }
+            .pomodoro-display { font-size: 4.5rem; }
+            .task-item { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .task-actions { width: 100%; justify-content: flex-end; }
+            .form-column { padding: 20px; }
         }
     </style>
 </head>
@@ -373,23 +385,22 @@
             <span class="logo-wf">WF</span>
             <span class="logo-text">Manager</span>
         </div>
-        <div class="version">Version 5.0</div>
+        <div class="version">v 5.3</div>
     </header>
 
     <main>
         <section>
-            <h2>Метеокарта (Windy)</h2>
+            <h2>Метеокарта</h2>
             <div class="map-container">
-                <iframe width="100%" height="700" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=m/s&zoom=5&overlay=wind&product=ecmwf&level=surface" frameborder="0"></iframe>
+                <iframe width="100%" height="900" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=m/s&zoom=5&overlay=wind&product=ecmwf&level=surface" frameborder="0"></iframe>
             </div>
         </section>
 
         <section>
-            <h2>Timer Pomodoro</h2>
+            <h2>Таймер Pomodoro</h2>
             <div class="pomodoro-settings">
-                <label for="pomodoro-input">Мин:</label>
-                <input type="number" id="pomodoro-input" value="25" min="1" max="120">
-                <button onclick="setCustomTime()">Установить</button>
+                <input type="number" id="pomodoro-input" value="25" min="1" max="120" title="Минуты">
+                <button onclick="setCustomTime()">Задать время</button>
             </div>
             <div class="pomodoro-display" id="timer-display">25:00</div>
             <div class="btn-group">
@@ -400,20 +411,19 @@
         </section>
 
         <section>
-            <h2>Менеджер задач</h2>
+            <h2>Задачи</h2>
             <div class="task-controls">
-                <input type="text" id="task-name" placeholder="Название задачи">
+                <input type="text" id="task-name" placeholder="Что нужно сделать?">
                 <select id="task-priority">
                     <option value="low">Низкий приоритет</option>
                     <option value="medium">Средний приоритет</option>
                     <option value="high">Высокий приоритет</option>
                 </select>
-                <input type="text" id="task-dep" placeholder="Зависимость (от чего?)">
-                <input type="date" id="task-deadline" title="Дедлайн">
+                <input type="text" id="task-dep" placeholder="Зависит от...">
+                <input type="date" id="task-deadline">
                 <button onclick="addTask()">Добавить</button>
             </div>
-            <ul class="task-list" id="task-list">
-                </ul>
+            <ul class="task-list" id="task-list"></ul>
         </section>
 
         <section>
@@ -436,27 +446,27 @@
                 </div>
                 <div class="form-group">
                     <label>Температура (°C)</label>
-                    <input type="text" name="Температура" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                    <input type="text" name="Температура" placeholder="Введите температуру" oninput="restrictInput(this)" required>
                 </div>
 				<div class="form-group">
                     <label>Ветер (км/ч)</label>
-                    <input type="text" name="Ветер" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                    <input type="text" name="Ветер" placeholder="Ввдите ветер" oninput="restrictInput(this)" required>
                 </div>
 				<div class="form-group">
                     <label>Облака (%)</label>
-                    <input type="text" name="Облака" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                    <input type="text" name="Облака" placeholder="Введите проценты облаков" oninput="restrictInput(this)" required>
                 </div>
 				<div class="form-group">
                     <label>Тип осадков (mm)</label>
-                    <input type="text" name="Тип осадков" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                    <input type="text" name="Тип осадков" placeholder="Введите тип осадков" oninput="restrictInput(this)" required>
                 </div>
 				<div class="form-group">
                     <label>Точка росы (°C)</label>
-                    <input type="text" name="Точка росы" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                    <input type="text" name="Точка росы" placeholder="Введите точку росы" oninput="restrictInput(this)" required>
                 </div>
                 <div class="form-group">
                     <label>Влажность (%)</label>
-                    <input type="text" name="Влажность" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                    <input type="text" name="Влажность" placeholder="Введите влажность" oninput="restrictInput(this)" required>
                 </div>
 				<div class="form-group">
                     <label>Ультрафиолетовый индекс</label>
@@ -471,31 +481,31 @@
                 </div>
 				<div class="form-group">
                     <label>Туман</label>
-                    <input type="text" name="Туман" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                    <input type="text" name="Туман" placeholder="Введите тип тумана">
                 </div>
 				<div class="form-group">
                     <label>Видимость (км)</label>
-                    <input type="text" name="Видимость" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                    <input type="text" name="Видимость" placeholder="Введите видимость" oninput="restrictInput(this)" required>
                 </div>
 				<div class="form-group">
                     <label>Индекс CAPE (J/kg)</label>
-                    <input type="text" name="Индекс CAPE" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                    <input type="text" name="Индекс CAPE" placeholder="Введите индекс" oninput="restrictInput(this)" required>
                 </div>
 				<div class="form-group">
                     <label>NO2 (mg/m3)</label>
-                    <input type="text" name="NO2" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                    <input type="text" name="NO2" placeholder="Введите NO2" oninput="restrictInput(this)" required>
                 </div>
 				<div class="form-group">
                     <label>Озоновый слой (DU)</label>
-                    <input type="text" name="Озоновый слой" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                    <input type="text" name="Озоновый слой" placeholder="Введите озоновый слой" oninput="restrictInput(this)" required>
                 </div>
 				<div class="form-group">
                     <label>Концетрация CO (ppbv)</label>
-                    <input type="text" name="Концетрация CO" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                    <input type="text" name="Концетрация CO" placeholder="Введите концетрацию CO" oninput="restrictInput(this)" required>
                 </div>
                 <div class="form-group">
                     <label>Выполняет работу (ФИО)</label>
-                    <input type="text" name="Исполнитель" placeholder="По желанию">
+                    <input type="text" name="Исполнитель" placeholder="Введите имя">
                 </div>
                 <div class="form-group">
                     <label>Устройство</label>
@@ -506,42 +516,34 @@
                         <option value="Компьютер">Компьютер</option>
                     </select>
                 </div>
-                
                 <button type="submit" class="submit-btn">Отправить бланк</button>
             </form>
         </section>
     </main>
 
-    <footer>
-        © Все права защищены
-    </footer>
+    <footer>© Все права защищены</footer>
 
     <script>
-        // --- 1. Pomodoro Timer Logic ---
+        // --- 1. Таймер Pomodoro ---
         let timerInterval;
-        let defaultTime = 25 * 60; // По умолчанию 25 минут
+        let defaultTime = 25 * 60;
         let timeLeft = defaultTime;
         let isRunning = false;
         const display = document.getElementById('timer-display');
 
         function updateDisplay() {
-            let minutes = Math.floor(timeLeft / 60);
-            let seconds = timeLeft % 60;
-            display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            let m = Math.floor(timeLeft / 60);
+            let s = timeLeft % 60;
+            display.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
         function setCustomTime() {
-            if (isRunning) {
-                alert('Сначала поставьте таймер на паузу!');
-                return;
-            }
-            const inputMinutes = parseInt(document.getElementById('pomodoro-input').value);
-            if (inputMinutes > 0) {
-                defaultTime = inputMinutes * 60;
+            if (isRunning) return alert('Поставьте таймер на паузу!');
+            const min = parseInt(document.getElementById('pomodoro-input').value);
+            if (min > 0) {
+                defaultTime = min * 60;
                 timeLeft = defaultTime;
                 updateDisplay();
-            } else {
-                alert('Введите корректное время больше 0');
             }
         }
 
@@ -549,123 +551,67 @@
             if (!isRunning) {
                 isRunning = true;
                 timerInterval = setInterval(() => {
-                    if (timeLeft > 0) {
-                        timeLeft--;
-                        updateDisplay();
-                    } else {
-                        clearInterval(timerInterval);
-                        isRunning = false;
-                        alert('Время вышло! Пора сделать перерыв или сменить задачу.');
-                    }
+                    if (timeLeft > 0) { timeLeft--; updateDisplay(); } 
+                    else { clearInterval(timerInterval); isRunning = false; alert('Время вышло! Пора отдохнуть.'); }
                 }, 1000);
             }
         }
 
-        function pauseTimer() {
-            clearInterval(timerInterval);
-            isRunning = false;
-        }
-
-        function resetTimer() {
-            clearInterval(timerInterval);
-            isRunning = false;
-            timeLeft = defaultTime;
-            updateDisplay();
-        }
-
-        // Инициализация отображения таймера
+        function pauseTimer() { clearInterval(timerInterval); isRunning = false; }
+        function resetTimer() { clearInterval(timerInterval); isRunning = false; timeLeft = defaultTime; updateDisplay(); }
         updateDisplay();
 
-        // --- 2. Task Manager Logic ---
+        // --- 2. Менеджер задач ---
         function addTask() {
             const nameInput = document.getElementById('task-name');
             const priority = document.getElementById('task-priority').value;
             const depInput = document.getElementById('task-dep');
             const deadlineInput = document.getElementById('task-deadline');
             
-            const name = nameInput.value.trim();
-            const dep = depInput.value.trim();
-            const deadline = deadlineInput.value;
-            
-            if (!name) {
-                alert('Введите название задачи!');
-                return;
-            }
+            if (!nameInput.value.trim()) return alert('Введите название задачи!');
 
-            const list = document.getElementById('task-list');
             const li = document.createElement('li');
             li.className = `task-item task-priority-${priority}`;
             
-            // Форматируем дату дедлайна, если она есть
-            let deadlineText = '';
-            if (deadline) {
-                const d = new Date(deadline);
-                deadlineText = ` | Дедлайн: ${d.toLocaleDateString('ru-RU')}`;
-            }
+            let metaInfo = [];
+            const prioMap = {high: 'Высокий', medium: 'Средний', low: 'Низкий'};
+            metaInfo.push(`Приоритет: ${prioMap[priority]}`);
+            
+            if (depInput.value.trim()) metaInfo.push(`От: ${depInput.value.trim()}`);
+            if (deadlineInput.value) metaInfo.push(`До: ${new Date(deadlineInput.value).toLocaleDateString('ru-RU')}`);
             
             li.innerHTML = `
                 <div class="task-info">
-                    <div class="task-title">${name}</div>
-                    <div class="task-meta">
-                        Приоритет: ${priority === 'high' ? 'Высокий' : priority === 'medium' ? 'Средний' : 'Низкий'} 
-                        ${dep ? `| Зависимость: ${dep}` : ''} 
-                        ${deadlineText}
-                    </div>
+                    <div class="task-title">${nameInput.value.trim()}</div>
+                    <div class="task-meta">${metaInfo.join(' | ')}</div>
                 </div>
                 <div class="task-actions">
-                    <button class="btn-success" onclick="toggleTask(this)" title="Выполнено">✓</button>
-                    <button class="btn-edit" onclick="editTask(this)" title="Редактировать">✎</button>
+                    <button class="btn-success" onclick="this.closest('.task-item').classList.toggle('task-completed')" title="Готово">✓</button>
+                    <button class="btn-edit" onclick="editTask(this)" title="Правка">✎</button>
                     <button class="btn-danger" onclick="this.closest('.task-item').remove()" title="Удалить">✕</button>
                 </div>
             `;
             
-            list.appendChild(li);
-            
-            // Очистка инпутов
-            nameInput.value = '';
-            depInput.value = '';
-            deadlineInput.value = '';
-        }
-
-        function toggleTask(btn) {
-            const taskItem = btn.closest('.task-item');
-            taskItem.classList.toggle('task-completed');
+            document.getElementById('task-list').prepend(li);
+            nameInput.value = ''; depInput.value = ''; deadlineInput.value = '';
         }
 
         function editTask(btn) {
-            const taskItem = btn.closest('.task-item');
-            const titleElement = taskItem.querySelector('.task-title');
-            
-            const currentName = titleElement.innerText;
-            const newName = prompt('Редактировать задачу:', currentName);
-            
-            if (newName !== null && newName.trim() !== '') {
-                titleElement.innerText = newName.trim();
-            }
+            const titleEl = btn.closest('.task-item').querySelector('.task-title');
+            const newName = prompt('Изменить название задачи:', titleEl.innerText);
+            if (newName && newName.trim()) titleEl.innerText = newName.trim();
         }
 
-        // --- 3. Observation Form Logic ---
-        // Автозаполнение даты и времени
+        // --- 3. Бланк наблюдений ---
         function updateDateTime() {
             const now = new Date();
-            
-            // Формат даты: ДД.ММ.ГГГГ
-            const dateStr = now.toLocaleDateString('ru-RU');
-            document.getElementById('auto-date').value = dateStr;
-            
-            // Формат времени: ЧЧ:ММ:СС
-            const timeStr = now.toLocaleTimeString('ru-RU');
-            document.getElementById('auto-time').value = timeStr;
+            document.getElementById('auto-date').value = now.toLocaleDateString('ru-RU');
+            document.getElementById('auto-time').value = now.toLocaleTimeString('ru-RU');
         }
-        
-        // Обновляем время каждую секунду, чтобы на момент отправки оно было точным
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
-        // Фильтрация ввода: только цифры и символы . , ; :
-        function restrictInput(inputElement) {
-            inputElement.value = inputElement.value.replace(/[^0-9.,;:]/g, '');
-        }
+        function restrictInput(el) { el.value = el.value.replace(/[^0-9.,;:]/g, ''); }
     </script>
 </body>
 </html>
