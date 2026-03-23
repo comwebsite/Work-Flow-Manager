@@ -380,7 +380,7 @@
         <section>
             <h2>Метеокарта (Windy)</h2>
             <div class="map-container">
-                <iframe width="100%" height="600" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=m/s&zoom=5&overlay=wind&product=ecmwf&level=surface" frameborder="0"></iframe>
+                <iframe width="100%" height="700" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=m/s&zoom=5&overlay=wind&product=ecmwf&level=surface" frameborder="0"></iframe>
             </div>
         </section>
 
@@ -438,42 +438,60 @@
                     <label>Температура (°C)</label>
                     <input type="text" name="Температура" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
                 </div>
+				<div class="form-group">
+                    <label>Ветер (км/ч)</label>
+                    <input type="text" name="Ветер" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                </div>
+				<div class="form-group">
+                    <label>Облака (%)</label>
+                    <input type="text" name="Облака" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                </div>
+				<div class="form-group">
+                    <label>Тип осадков (mm)</label>
+                    <input type="text" name="Тип осадков" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                </div>
+				<div class="form-group">
+                    <label>Точка росы (°C)</label>
+                    <input type="text" name="Точка росы" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                </div>
                 <div class="form-group">
                     <label>Влажность (%)</label>
                     <input type="text" name="Влажность" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
                 </div>
-                <div class="form-group">
-                    <label>Погода</label>
+				<div class="form-group">
+                    <label>Ультрафиолетовый индекс</label>
                     <select name="Погода" required>
-                        <option value="" disabled selected>Выберите погоду</option>
-                        <option value="Ясно">Ясно</option>
-                        <option value="Засуха">Засуха</option>
-                        <option value="Туман">Туман</option>
-                        <option value="Облачно">Облачно</option>
-                        <option value="Пасмурно">Пасмурно</option>
-                        <option value="Дождь">Дождь</option>
-                        <option value="Гроза">Гроза</option>
-                        <option value="Град">Град</option>
-                        <option value="Снег">Снег</option>
+                        <option value="" disabled selected>Выберите тип индекса</option>
+                        <option value="Ясно">Низкий</option>
+                        <option value="Засуха">Умеренный</option>
+                        <option value="Туман">Высокий</option>
+                        <option value="Облачно">Очень высокий</option>
+                        <option value="Пасмурно">Экстремальный</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Ветер</label>
-                    <select name="Ветер" required>
-                        <option value="" disabled selected>Выберите ветер</option>
-                        <option value="Нейтральный">Нейтральный</option>
-                        <option value="Слабый">Слабый</option>
-                        <option value="Легкий">Легкий</option>
-                        <option value="Умеренный">Умеренный</option>
-                        <option value="Свежий ветер">Свежий ветер</option>
-                        <option value="Сильный ветер">Сильный ветер</option>
-                        <option value="Шторм">Шторм</option>
-                        <option value="Ураган">Ураган</option>
-                    </select>
+				<div class="form-group">
+                    <label>Туман</label>
+                    <input type="text" name="Туман" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
                 </div>
-                <div class="form-group">
-                    <label>Kt</label>
-                    <input type="text" name="Kt" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+				<div class="form-group">
+                    <label>Видимость (км)</label>
+                    <input type="text" name="Видимость" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                </div>
+				<div class="form-group">
+                    <label>Индекс CAPE (J/kg)</label>
+                    <input type="text" name="Индекс CAPE" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                </div>
+				<div class="form-group">
+                    <label>NO2 (mg/m3)</label>
+                    <input type="text" name="NO2" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                </div>
+				<div class="form-group">
+                    <label>Озоновый слой (DU)</label>
+                    <input type="text" name="Озоновый слой" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
+                </div>
+				<div class="form-group">
+                    <label>Концетрация CO (ppbv)</label>
+                    <input type="text" name="Концетрация CO" placeholder="Только цифры и .,;:" oninput="restrictInput(this)" required>
                 </div>
                 <div class="form-group">
                     <label>Выполняет работу (ФИО)</label>
